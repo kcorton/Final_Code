@@ -23,7 +23,7 @@ float rightDist = 0;
 float rightDistTemp =0; 
 int rightSpeed = 0;
 
-int desiredDist = 5;
+int desiredDist = 7;
 
 float distCenter = 0;
 float distFront = 0;
@@ -32,9 +32,9 @@ float inchesPerTick = .0032751103;
 
 void setup(){
 
-  /* set up the timer */
-  Timer1.initialize(1000);	               // set up a 1 millisecond timer period
-  Timer1.attachInterrupt(timerISR);           // ...and specify the timer ISR
+//  /* set up the timer */
+//  Timer1.initialize(1000000000);	               // set up a 1 millisecond timer period
+//  Timer1.attachInterrupt(timerISR);           // ...and specify the timer ISR
 
   pinMode(leftMotorF, OUTPUT);
   pinMode(leftMotorB, OUTPUT);
@@ -49,7 +49,7 @@ void setup(){
 
 void timerISR(void) {
   // we are here because the timer expired and generated an interrupt
-  state = 1;                                
+  //state = 1;                                
 } 
 
 void loop(){
@@ -80,10 +80,12 @@ void loop(){
   switch (state) {
   case 0: 
     checkTotalDistance();
-    state = 0; 
+//    //state = 0; 
+//    break;
+
   case 1: 
     equalizeDrive();
-    state = 0; 
+   // state = 0; 
 
   }
 }
@@ -100,7 +102,7 @@ void checkTotalDistance(void){
   if(rightDist >= desiredDist){
     rightSpeed = 0;
   }
-  else{
+  else {
     rightSpeed = 100;
   }
 
@@ -109,18 +111,18 @@ void checkTotalDistance(void){
 void equalizeDrive() {
 
   if(leftDistTemp < rightDistTemp){
-    leftSpeed = 0; 
-    rightSpeed = 100;
+    leftSpeed = 100; 
+    rightSpeed = 0;
   }
 
   else if (rightDistTemp > leftDistTemp){
-    leftSpeed = 100;
-    rightSpeed = 0; 
+    leftSpeed = 0;
+    rightSpeed = 100; 
 
   }
 
   else {
-    state = 0; 
+    //state = 0; 
     leftCounterTemp = 0; 
     rightCounterTemp =0;
   }
@@ -149,7 +151,7 @@ void rightTick(){
   }
   else{
     rightCounter++;
-    rightCounterTemp --; 
+    rightCounterTemp ++; 
   }
 }
 
