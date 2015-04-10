@@ -35,3 +35,35 @@ void loop() {
   } 
 
 }
+
+// Can you put any setup and intialization info that is needed for this to work Below here 
+
+#define extinguishingFire 1
+int mainState = 0;
+
+
+/*********************************************************************************************/
+// Scan function 
+// scans the full range of the flame sensor servo, saving positions and readings in an array, 
+// and saving a global variable with the servo position at the highest flame sensing
+// this is used once the flame has been seen
+
+void scan (void) {
+
+
+}
+
+/*********************************************************************************************/
+// Look For Fire function
+
+// This function is constantly polled when navigating the maze
+// it rotates the servo and if it ever sees a "flame" changes the main State 
+
+void lookForFire (void) {
+  
+  // if the fire has been found 
+   mainState = extinguishingFire;
+  
+}
+
+
