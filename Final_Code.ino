@@ -183,7 +183,8 @@ void allDone(void) {
 /*********************************************************************************************/
 // Scan function 
 // scans the full range of the flame sensor servo, saving positions and readings in an array, 
-// and saving a variable with the servo position at the highest flame sensing
+// and saving a global variable with the servo position at the highest flame sensing
+// this is used once the flame has been seen
 
 void scan (void) {
 
@@ -340,6 +341,19 @@ void turn(int turnDeg){
 // drives to next Coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
 
 void driveToNextCoor (void) {
+  
+}
+
+/*********************************************************************************************/
+// Look For Fire function
+
+// This function is constantly polled when navigating the maze
+// it rotates the servo and if it ever sees a "flame" changes the main State 
+
+void lookForFire (void) {
+  
+  // if the fire has been found 
+   mainState = extinguishingFire;
   
 }
 
