@@ -3,6 +3,12 @@
 /*********************************************************************************************/
 /* Necessary Include Files */
 
+// Pin Values 
+#define frontSonarPin1 1
+#define frontSonarPin2 2
+#define sideSonarPin1 1
+#define sideSonarPin2 2
+
 // Main State machine States
 #define findingFire 0
 #define extinguishingFire 1
@@ -47,6 +53,7 @@
 
 #define candleDist 1
 #define frontWallDist 4
+#define closeWallDist 6
 #define BackFromCliffDist 3
 #define forwardDisToTurnAboutWall 3
 #define ninetyDeg 90
@@ -66,8 +73,10 @@ int YCoord = 0;
 int nextXCoord = 0; 
 int nextYCoord = 0; 
 
-boolean turnComplete = 0; 
-boolean disTravComplete = 0; 
+boolean turnComplete = false; 
+boolean disTravComplete = false; 
+boolean scanComplete = false;
+boolean fanSweepComplete = false;
 
 
 void setup(){
@@ -122,7 +131,7 @@ void findFire(void) {
       seeWallFront();
       
       if(turnComplete){
-        turnComplete = 0;
+        turnComplete = false;
         mazeState = followingWall;
         seeWallState = 0;
       }
@@ -131,16 +140,21 @@ void findFire(void) {
     case loosingWall:
       lostWall();
       
-      // if sonar can see the proper wall again
-      mazeState = followingWall;
-      lostWallState = 0;
+      //once sonar can see a wall again
+      if(checkSideDis(closeWallDist)){
+        mazeState = followingWall;
+        lostWallState = 0;
+      }
       break;
     case seeingCliff: // this state will be entered by an interrupt triggered by our line tracker **** KAREN THIS INTERRUPT NEEDS TO STOP ROBOT AND SET CLIFFSTATE = 0
       seenCliff();
       
       //once sonar can see a wall again 
-      mazeState = followingWall;
-      cliffState = 0;
+      if(checkSideDis(closeWallDist)){
+        mazeState = followingWall;
+        cliffState = 0;
+      }
+      
       break; 
     
 
@@ -156,8 +170,10 @@ void extinguishFire(void){
   case scaning: // scans full range of fire sensor
     scan();
 
-    // if scan is complete 
-    extState = turningToFlame;
+    if(scanComplete) {
+      extState = turningToFlame;
+      scanComplete = false; 
+    }
 
     break;
 
@@ -165,7 +181,7 @@ void extinguishFire(void){
     turnTowardFlame();
 
     if(turnComplete){
-        turnComplete = 0;
+        turnComplete = false;
         extState = drivingToCandle;
       }
      
@@ -181,8 +197,10 @@ void extinguishFire(void){
   case activatingFan:
     activateFan();
 
-    //If fan sweep is complete 
-    extState = checkingFlame;
+    if(fanSweepComplete){ 
+      extState = checkingFlame;
+      fanSweepComplete = false;
+    }
 
     break;
 
@@ -224,7 +242,7 @@ void returnHome(void) {
     determineX();
 
     if(turnComplete){
-        turnComplete = 0;
+        turnComplete = false;
         rtnState = drivingToX;
       }
     
@@ -233,14 +251,15 @@ void returnHome(void) {
   case drivingToX:
     driveToX(); 
 
-    // when X Coordinate has been reached 
-    rtnState = determiningY; 
+    if ( XCoord = nextXCoord){ 
+      rtnState = determiningY; 
+    }
     break;   
   case determiningY:
     determineY();
 
     if(turnComplete){
-        turnComplete = 0;
+        turnComplete = false;
         rtnState = drivingToY;
       }
     
@@ -249,8 +268,9 @@ void returnHome(void) {
   case drivingToY:
     driveToY();  
 
-    // when Y Coordinate has been reached 
-    rtnState = gettingCoordinates; 
+    if(YCoord = nextYCoord){ 
+      rtnState = gettingCoordinates; 
+    }
     break; 
   }
 
@@ -269,8 +289,12 @@ void allDone(void) {
 // scans the full range of the flame sensor servo, saving positions and readings in an array, 
 // and saving a global variable with the servo position at the highest flame sensing
 // this is used once the flame has been seen
+// turns a global variable scanComplete to 1 once it has finished
 
 void scan(void) {
+  
+  // if scan is complete 
+  scanComplete = true;
 
 
 }
@@ -311,7 +335,24 @@ void driveStraightForwardEnc(void) {
 
 boolean checkFrontDis(int desDis){
 
-  if (getFrontDis() <= desDis) { 
+  if (getDis(frontSonarPin1, frontSonarPin2) <= desDis) { 
+    return true; 
+  }
+
+  else { 
+    return false; 
+  }
+
+}
+
+/*********************************************************************************************/
+// Check Side Distance function 
+
+// if the side distance sensors sees something  a certain distance away the function is true
+
+boolean checkSideDis(int desDis){
+
+  if (getDis(sideSonarPin1, sideSonarPin2) <= desDis) { 
     return true; 
   }
 
@@ -326,7 +367,7 @@ boolean checkFrontDis(int desDis){
 
 // returns the value from the front distance sensor when called 
 
-int getFrontDis(void) {
+int getDis(int PinVal1, int PinVal2) {
 
 }
 
@@ -338,6 +379,9 @@ int getFrontDis(void) {
 void activateFan(void) { 
 
   // run fan between two extremes 
+  
+  // once function is complete 
+  fanSweepComplete = true;
 
 
 }
@@ -420,7 +464,7 @@ void turn(int turnDeg){
   
   // if turn has been completed 
   stopAllDrive();
-  turnComplete = 1;
+  turnComplete = true;
 
 }
 
@@ -430,6 +474,12 @@ void turn(int turnDeg){
 // drives to next Coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
 
 void driveToNextCoor(void) {
+  
+  // if sensor value is returning close wall value 
+  driveStraightForwardEncSon();
+  
+  // if sensor sees no close wall 
+  driveStraightForwardEnc();
   
 }
 
@@ -460,7 +510,7 @@ void updateLocation(void) {
 // this functions keeps the robot straight using the encoders and keeps it a certain distance from the wall 
 
 void followWall(void) {
-  drivingStraightForwardEncSon();
+  driveStraightForwardEncSon();
   
 }
 
@@ -493,14 +543,14 @@ void lostWall(void) {
     driveStraightDesDis(forwardDisToTurnAboutWall);
       if(disTravComplete) {
         lostWallState = lostWallTurning;
-        disTravComplete = 0;
+        disTravComplete = false;
       }
       break;
       case lostWallTurning: 
       turn(-ninetyDeg);
       if(turnComplete){
         lostWallState = lostWallDrivingStraight;
-        turnComplete = 0;
+        turnComplete = false;
       }
       break; 
      case lostWallDrivingStraight: 
@@ -526,14 +576,14 @@ void seenCliff(void) {
       driveStraightDesDis(-BackFromCliffDist);
       if(disTravComplete) {
         cliffState = SeenCliffTurningToStraight;
-        disTravComplete = 0;
+        disTravComplete = false;
       }
       break;
     case SeenCliffTurningToStraight:
       turn(ninetyDeg);
       if(turnComplete){
         cliffState = SeenCliffBackOnCourse;
-        turnComplete = 0;
+        turnComplete = false;
       }
       break;
     case SeenCliffBackOnCourse:
@@ -551,7 +601,7 @@ void driveStraightDesDis(int desDis) {
   
   // if desired distance has been driven 
   stopAllDrive();
-  disTravComplete = 1; 
+  disTravComplete = true; 
 
 }
 
@@ -568,7 +618,7 @@ void stopAllDrive(void) {
 // Driving Straight Forward with Encoders and Sonar Function
 // this function keeps the robot driving straight and a certain distance from the wall
 
-void drivingStraightForwardEncSon(void) {
+void driveStraightForwardEncSon(void) {
   
 }
 
