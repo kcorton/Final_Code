@@ -11,6 +11,7 @@ which would be good for using a state machine.*/
 
 int fanMotor = 22;
 Servo armMotor;
+int armMotorPin = 4;
 int armPot = A4;
 
 //=============================Variables===================================================
@@ -27,7 +28,7 @@ boolean hitTop = false;
 void setup(){
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
   Timer1.attachInterrupt(timerISR);
-  armMotor.attach(4);
+  armMotor.attach(armMotorPin);
   pinMode(armPot, INPUT);
   armInitTime = countTime;
   Serial.begin(9600);
