@@ -15,6 +15,14 @@
 #define fanMotorPin 22
 #define armMotorPin 4
 #define armPotPin A4
+#define leftMotorF 6
+#define leftMotorB 11
+#define leftEncoderB 10
+#define leftEncoderA 2
+#define rightMotorF 9
+#define rightMotorB 8
+#define rightEncoderB 7
+#define rightEncoderA 3
 
 // Main State machine States
 #define findingFire 0
@@ -70,6 +78,10 @@
 #define xNeg 2
 #define yNeg 3
 
+// Sonar Names 
+#define frontSonar 0
+#define sideSonar 1
+#define backSonar 2
 
 // Pre-defined Values and Distances
 #define candleDist 1
@@ -78,6 +90,7 @@
 #define BackFromCliffDist 3
 #define forwardDisToTurnAboutWall 3
 #define ninetyDeg 90
+#define inchesPerTick .0032751103
 
 
 // Motor and Servo Declarations
@@ -113,25 +126,36 @@ boolean disTravComplete = false;
 boolean scanComplete = false;
 boolean fanSweepComplete = false;
 boolean hitTop = false;
-boolean deactivateUpdateLocation = false;
 
-// Timer Variables 
-long countTime = 0;
+// Interrupt Variables
+volatile long countTime = 0;
+volatile long rightCounter = 0;
+volatile long leftCounter = 0;
 
 void setup(){
   
+  Serial.begin(9600);
+  
   // need some way to determine which direction the robot is initially facing 
   
-  Serial.begin(9600);
+  // setup drive motors
+  pinMode(leftMotorF, OUTPUT);
+  pinMode(leftMotorB, OUTPUT);
+  pinMode(rightMotorF, OUTPUT);
+  pinMode(rightMotorB, OUTPUT);
+  
+  // setup Fan Motor
+  armMotor.attach(armMotorPin);
+  pinMode(armPotPin, INPUT);
 
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
   Timer1.attachInterrupt(timerISR);
   
-  // set up  for Fan Function
-  armMotor.attach(armMotorPin);
-  pinMode(armPotPin, INPUT);
-
+  // set up interrups for drive Motors
+  attachInterrupt(0,leftTick,RISING);
+  attachInterrupt(1,rightTick,RISING);  
+ 
 }
 
 void loop() {
@@ -152,20 +176,11 @@ void loop() {
   }
 }
 
-/*********************************************************************************************/
-// Timer ISR
-
-void timerISR(){
-  countTime++;
-}
 
 /*********************************************************************************************/
 // FindFire Switch State
 
 void findFire(void) {
-  
-  // updates the location of the robot from encoder values
-  updateLocation();
   
   // looks for the fire 
   lookForFire();
@@ -334,440 +349,8 @@ void returnHome(void) {
 }
 
 
-/*********************************************************************************************/
-// madeItHome
 
-void allDone(void) {
 
-}
 
-/*********************************************************************************************/
-// Scan function 
-// scans the full range of the flame sensor servo, saving positions and readings in an array, 
-// and saving a global variable with the servo position at the highest flame sensing
-// this is used once the flame has been seen
-// turns a global variable scanComplete to 1 once it has finished
 
-void scan(void) {
-  
-  // if scan is complete 
-  scanComplete = true;
-
-
-}
-
-/*********************************************************************************************/
-// Turn Toward Flame function
-// turns robot to the angle specified based on the variable changed in the scan function
-
-void turnTowardFlame(void){
-
-}
-
-/*********************************************************************************************/
-// Drive to Candle Function
-
-void driveToCandle(void) {
-
-
-  scan(); 
-  turnTowardFlame();
-  driveStraightForwardEnc();
-
-}
-
-/*********************************************************************************************/
-// Drive Straight Forward Encoders function
-
-//drives straight by ensuring both encoders have moved the same distance
-
-void driveStraightForwardEnc(void) {
-
-}
-
-/*********************************************************************************************/
-// Check Front Distance function 
-
-// if the front distance sensors sees something  a certain distance away the function is true
-
-boolean checkFrontDis(int desDis){
-
-  if (getDis(frontSonarPin1, frontSonarPin2) <= desDis) { 
-    return true; 
-  }
-
-  else { 
-    return false; 
-  }
-
-}
-
-/*********************************************************************************************/
-// Check Side Distance function 
-
-// if the side distance sensors sees something  a certain distance away the function is true
-
-boolean checkSideDis(int desDis){
-
-  if (getDis(sideSonarPin1, sideSonarPin2) <= desDis) { 
-    return true; 
-  }
-
-  else { 
-    return false; 
-  }
-
-}
-
-/*********************************************************************************************/
-// Get Front Distance Function  
-
-// returns the value from the front distance sensor when called 
-
-int getDis(int PinVal1, int PinVal2) {
-
-}
-
-/*********************************************************************************************/
-// Activate Fan Function 
-
-// Sweeps Fan between it's two extreme postions and checks if the fire is still detected 
-
-void activateFan(void) { 
-
-  // run fan between two extremes 
-  digitalWrite(fanMotorPin, HIGH);
-  armTimePassed = countTime - armInitTime;
-  switch(armState){
-    case raisingArm:
-      armMotor.write(108);
-      if(analogRead(armPotPin) > highPos){
-        armState = reachedTop;
-      }
-      break;
-    case reachedTop:
-      initTime = countTime;
-      armState = waitingAtTop;
-      break;
-    case waitingAtTop: 
-      armMotor.write(100);
-      if((armTimePassed-initTime) > armWaitTime){
-      armState = loweringArm;
-      }
-      break;
-    case loweringArm:
-    armMotor.write(93);
-    if (analogRead(armPotPin) <=  lowPos){
-      armMotor.write(90);
-      digitalWrite(fanMotorPin, LOW);
-      fanSweepComplete = true;
-    }
-    break;
-  }
-}
-
-/*********************************************************************************************/
-// Report Flame Function 
-
-// reports the location of the flame 
-
-void reportFlame(void) {
-
-}
-
-/*********************************************************************************************/
-// Get Coordinates function 
-
-// changes the global variables NextX and NextY to the next coordinates from the array of corrdinates created when traversing maze
-
-void getCoordinates(void) {
-
-}
-
-/*********************************************************************************************/
-// Determine X function
-
-// uses the current and next X value to determine which direction pos or neg X to drive and turns that way
-
-void determineX(void) {
-
-  // if needs to turn left 
-  turn( - ninetyDeg);
-
-  // if needs to turn right 
-  turn ( ninetyDeg);
-
-}
-
-/*********************************************************************************************/
-// Driving to X function
-
-//Drives to next X coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
-
-void driveToX(void) {
-  driveToNextCoor();
-}
-
-/*********************************************************************************************/
-// Determine Y function
-
-// uses the current and next Y value to determine which direction pos or neg Y to drive and turns that way
-
-void determineY(void) {
-
-  // if needs to turn left 
-  turn( - ninetyDeg);
-
-  // if needs to turn right 
-  turn ( ninetyDeg);
-
-}
-
-/*********************************************************************************************/
-// Driving to Y function
-
-//Drives to next Y coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
-
-void driveToY(void) {
-  driveToNextCoor();
-}
-
-/*********************************************************************************************/
-// Turn Function
-
-// turns the robot about the turning center a given distance 
-// pos - turns clockwise
-// neg- turns counterclockwise
-// once the turn is complete all motors stop and the global variable turnComplete is set to 1
-
-void turn(int turnDeg){
-  // deactivate update Location 
-  deactivateUpdateLocation = true;
-  
-  // if turn has been completed 
-  stopAllDrive();
-  storeLocation();
-  turnStateMachine(turnDeg); 
-  deactivateUpdateLocation = false; // might also need to reset encoder values here 
-  turnComplete = true;
-
-}
-
-/*********************************************************************************************/
-// Turn State machine  
-
-// sets a global variable to determine whether to increment x or y or decrement x or y 
-
-void turnStateMachine(int turnDeg){
- switch (drivingDirection) {
-  case xPos:
-  if (turnDeg > 0) {
-    drivingDirection = yNeg;
-  }
-  if (turnDeg < 0) {
-    drivingDirection = yPos;
-  }
-  case yPos:
-  if (turnDeg > 0) {
-    drivingDirection = xPos;
-  }
-  if (turnDeg < 0) {
-    drivingDirection = xNeg;
-  }  
- case xNeg:
-  if (turnDeg > 0) {
-    drivingDirection = yPos;
-  }
-  if (turnDeg < 0) {
-    drivingDirection = yNeg;
-  } 
-  case yNeg: 
-  if (turnDeg > 0) {
-    drivingDirection = xNeg;
-  }
-  if (turnDeg < 0) {
-    drivingDirection = xPos;
-  }  
-}
-}
-
-/*********************************************************************************************/
-// Drive To Next Coor function
-
-// drives to next Coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
-
-void driveToNextCoor(void) {
-  
-  // if sensor value is returning close wall value 
-  driveStraightForwardEncSon();
-  
-  // if sensor sees no close wall 
-  driveStraightForwardEnc();
-  
-}
-
-/*********************************************************************************************/
-// Look For Fire function
-
-// This function is constantly polled when navigating the maze
-// it rotates the servo and if it ever sees a "flame" changes the main State 
-
-void lookForFire(void) {
-  
-  // if the fire has been found 
-   mainState = extinguishingFire;
-  
-}
-
-/*********************************************************************************************/
-// update Location Function
-
-//this function uses main global variable to determine which x and y coordinates to update and uses encoder values to update the new location of the robot
-
-void updateLocation(void) {
-  if (deactivateUpdateLocation) {
-    // do nothing becuase we are turning and the encoder ticks should not be counted
-  }
-  else { 
-    if (drivingDirection = xPos){
-    
-    }
-    else if(drivingDirection = yPos) {
-    
-    }
-    else if( drivingDirection = xNeg) {
-    
-    }
-    else if(drivingDirection = yPos) {
-    
-    }
-  }
-  
-}
-
-/*********************************************************************************************/
-// store Location Function
-// this function saves the current location in an array to be used when the robot returns home
-
-void storeLocation(void) {
-  
-}
-
-
-/*********************************************************************************************/
-// follow Wall Function
-// this functions keeps the robot straight using the encoders and keeps it a certain distance from the wall 
-
-void followWall(void) {
-  driveStraightForwardEncSon();
-  
-}
-
-/*********************************************************************************************/
-// See Wall Front Function
-// this function stops the robot, turns it 90 degress to the right, and updates which x and y variables should be updating as the robot drives
-
-void seeWallFront(void) {
-  
-  switch (seeWallState){
-    case seeWallStoppingDrive:
-    stopAllDrive();
-    seeWallState = seeWallTurningState;
-    break;
-    case seeWallTurningState:
-    turn(ninetyDeg);
-    break;
-  }
-}
-
-/*********************************************************************************************/
-// lost Wall Function
-// this drives the robot straight forward until it is the proper distance from the lost wall to turn left 
-// it then drives forward and if it drives over a given distance it will turn left again and drive straight
-
-void lostWall(void) {
-  
-  switch (lostWallState) {
-    case lostWallkeepDrivingStraight: 
-    driveStraightDesDis(forwardDisToTurnAboutWall);
-      if(disTravComplete) {
-        lostWallState = lostWallTurning;
-        disTravComplete = false;
-      }
-      break;
-      case lostWallTurning: 
-      turn(-ninetyDeg);
-      if(turnComplete){
-        lostWallState = lostWallDrivingStraight;
-        turnComplete = false;
-      }
-      break; 
-     case lostWallDrivingStraight: 
-     driveStraightForwardEnc();
-     break;
-  }
-      
-}
-
-/*********************************************************************************************/
-// seen Cliff Function
-// the robot needs to stop driving, back up, and turns right 
-// then it keeps driving straight until it finds the wall again
-
-void seenCliff(void) {   
-  
-  switch(cliffState){
-    case seenCliffStoppingDrive: 
-    stopAllDrive();
-    cliffState = seenCliffBackingUp; 
-    break;
-    case seenCliffBackingUp:
-      driveStraightDesDis(-BackFromCliffDist);
-      if(disTravComplete) {
-        cliffState = SeenCliffTurningToStraight;
-        disTravComplete = false;
-      }
-      break;
-    case SeenCliffTurningToStraight:
-      turn(ninetyDeg);
-      if(turnComplete){
-        cliffState = SeenCliffBackOnCourse;
-        turnComplete = false;
-      }
-      break;
-    case SeenCliffBackOnCourse:
-      driveStraightForwardEnc();
-  }
-}
-
-/*********************************************************************************************/
-// Drive Straight Desired Distance function
-
-//drives straight by ensuring both encoders have moved the same distance until it reaches it's desired distance
-// once this distance is reached it changes the gloabal variable disTravComplete to 1
-
-void driveStraightDesDis(int desDis) {
-  
-  // if desired distance has been driven 
-  stopAllDrive();
-  disTravComplete = true; 
-
-}
-
-/*********************************************************************************************/
-// stop All Drive Function
-
-// stops the drive motors from moving 
-
-void stopAllDrive(void) {
-  
-}
-
-/*********************************************************************************************/
-// Driving Straight Forward with Encoders and Sonar Function
-// this function keeps the robot driving straight and a certain distance from the wall
-
-void driveStraightForwardEncSon(void) {
-  
-}
 
