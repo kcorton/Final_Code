@@ -1,13 +1,20 @@
+
 // Final Code Goes Here 
 
 /*********************************************************************************************/
 /* Necessary Include Files */
+
+#include <Servo.h>
+#include <TimerOne.h>
 
 // Pin Values 
 #define frontSonarPin1 1
 #define frontSonarPin2 2
 #define sideSonarPin1 1
 #define sideSonarPin2 2
+#define fanMotorPin 22
+#define armMotorPin 4
+#define armPotPin A4
 
 // Main State machine States
 #define findingFire 0
@@ -51,6 +58,20 @@
 #define determiningY 3
 #define drivingToY 4
 
+//Fan Sweep State Machine
+#define raisingArm 0
+#define reachedTop 1
+#define waitingAtTop 2
+#define loweringArm 3
+
+//Turning State Machine 
+#define xPos 0
+#define yPos 1
+#define xNeg 2
+#define yNeg 3
+
+
+// Pre-defined Values and Distances
 #define candleDist 1
 #define frontWallDist 4
 #define closeWallDist 6
@@ -58,6 +79,16 @@
 #define forwardDisToTurnAboutWall 3
 #define ninetyDeg 90
 
+
+// Motor and Servo Declarations
+Servo armMotor;
+
+// Variables for Activate Fan Function   
+int armTimePassed, armInitTime;
+int armWaitTime = 100;
+int highPos = 460;
+int lowPos = 320;
+long initTime = 0;
 
 // State variables
 int mainState = 0; 
@@ -67,20 +98,39 @@ int lostWallState = 0;
 int cliffState = 0;
 int extState = 0; 
 int rtnState = 0; 
+int armState = 0; 
+int drivingDirection = 0; 
 
+// Variables to keep track of where the robot is and has been
 int XCoord = 0; 
 int YCoord = 0; 
 int nextXCoord = 0; 
 int nextYCoord = 0; 
 
+// boolean variables used in determining when to move to the next state
 boolean turnComplete = false; 
 boolean disTravComplete = false; 
 boolean scanComplete = false;
 boolean fanSweepComplete = false;
+boolean hitTop = false;
+boolean deactivateUpdateLocation = false;
 
+// Timer Variables 
+long countTime = 0;
 
 void setup(){
+  
+  // need some way to determine which direction the robot is initially facing 
+  
+  Serial.begin(9600);
 
+  // sets up timer used for arm Function
+  Timer1.initialize(100000); // interrupt every .1s or 10 times every second
+  Timer1.attachInterrupt(timerISR);
+  
+  // set up  for Fan Function
+  armMotor.attach(armMotorPin);
+  pinMode(armPotPin, INPUT);
 
 }
 
@@ -102,6 +152,12 @@ void loop() {
   }
 }
 
+/*********************************************************************************************/
+// Timer ISR
+
+void timerISR(){
+  countTime++;
+}
 
 /*********************************************************************************************/
 // FindFire Switch State
@@ -191,7 +247,8 @@ void extinguishFire(void){
     driveToCandle();
 
     if(checkFrontDis(candleDist)){
-      extState = activatingFan ;
+      extState = activatingFan;
+      armState = raisingArm;
     }
     break;
   case activatingFan:
@@ -379,11 +436,34 @@ int getDis(int PinVal1, int PinVal2) {
 void activateFan(void) { 
 
   // run fan between two extremes 
-  
-  // once function is complete 
-  fanSweepComplete = true;
-
-
+  digitalWrite(fanMotorPin, HIGH);
+  armTimePassed = countTime - armInitTime;
+  switch(armState){
+    case raisingArm:
+      armMotor.write(108);
+      if(analogRead(armPotPin) > highPos){
+        armState = reachedTop;
+      }
+      break;
+    case reachedTop:
+      initTime = countTime;
+      armState = waitingAtTop;
+      break;
+    case waitingAtTop: 
+      armMotor.write(100);
+      if((armTimePassed-initTime) > armWaitTime){
+      armState = loweringArm;
+      }
+      break;
+    case loweringArm:
+    armMotor.write(93);
+    if (analogRead(armPotPin) <=  lowPos){
+      armMotor.write(90);
+      digitalWrite(fanMotorPin, LOW);
+      fanSweepComplete = true;
+    }
+    break;
+  }
 }
 
 /*********************************************************************************************/
@@ -461,11 +541,54 @@ void driveToY(void) {
 // once the turn is complete all motors stop and the global variable turnComplete is set to 1
 
 void turn(int turnDeg){
+  // deactivate update Location 
+  deactivateUpdateLocation = true;
   
   // if turn has been completed 
   stopAllDrive();
+  storeLocation();
+  turnStateMachine(turnDeg); 
+  deactivateUpdateLocation = false; // might also need to reset encoder values here 
   turnComplete = true;
 
+}
+
+/*********************************************************************************************/
+// Turn State machine  
+
+// sets a global variable to determine whether to increment x or y or decrement x or y 
+
+void turnStateMachine(int turnDeg){
+ switch (drivingDirection) {
+  case xPos:
+  if (turnDeg > 0) {
+    drivingDirection = yNeg;
+  }
+  if (turnDeg < 0) {
+    drivingDirection = yPos;
+  }
+  case yPos:
+  if (turnDeg > 0) {
+    drivingDirection = xPos;
+  }
+  if (turnDeg < 0) {
+    drivingDirection = xNeg;
+  }  
+ case xNeg:
+  if (turnDeg > 0) {
+    drivingDirection = yPos;
+  }
+  if (turnDeg < 0) {
+    drivingDirection = yNeg;
+  } 
+  case yNeg: 
+  if (turnDeg > 0) {
+    drivingDirection = xNeg;
+  }
+  if (turnDeg < 0) {
+    drivingDirection = xPos;
+  }  
+}
 }
 
 /*********************************************************************************************/
@@ -502,8 +625,34 @@ void lookForFire(void) {
 //this function uses main global variable to determine which x and y coordinates to update and uses encoder values to update the new location of the robot
 
 void updateLocation(void) {
+  if (deactivateUpdateLocation) {
+    // do nothing becuase we are turning and the encoder ticks should not be counted
+  }
+  else { 
+    if (drivingDirection = xPos){
+    
+    }
+    else if(drivingDirection = yPos) {
+    
+    }
+    else if( drivingDirection = xNeg) {
+    
+    }
+    else if(drivingDirection = yPos) {
+    
+    }
+  }
   
 }
+
+/*********************************************************************************************/
+// store Location Function
+// this function saves the current location in an array to be used when the robot returns home
+
+void storeLocation(void) {
+  
+}
+
 
 /*********************************************************************************************/
 // follow Wall Function
