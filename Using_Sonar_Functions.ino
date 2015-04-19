@@ -48,8 +48,9 @@ float getDis(int sonarNum) {
 // it rotates the servo and if it ever sees a "flame" changes the main State 
 
 void lookForFire(void) {
-  
+
   // if the fire has been found 
-   mainState = extinguishingFire;
-  
+  mainState = extinguishingFire;
+
 }
+

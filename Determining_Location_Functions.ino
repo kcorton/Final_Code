@@ -12,6 +12,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg < 0) {
       drivingDirection = yPos;
     }
+    break;
   case yPos:
     if (turnDeg > 0) {
       drivingDirection = xPos;
@@ -19,6 +20,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg < 0) {
       drivingDirection = xNeg;
     }  
+    break;
   case xNeg:
     if (turnDeg > 0) {
       drivingDirection = yPos;
@@ -26,6 +28,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg < 0) {
       drivingDirection = yNeg;
     } 
+    break;
   case yNeg: 
     if (turnDeg > 0) {
       drivingDirection = xNeg;
@@ -33,6 +36,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg < 0) {
       drivingDirection = xPos;
     }  
+    break;
   }
 }
 
@@ -58,19 +62,20 @@ int changeInDis(void) {
 //this function uses main global variable to determine which x and y coordinates to update and uses encoder values to update the new location of the robot
 
 void updateLocation(void) {
-  
-    if (drivingDirection = xPos){
-      XCoord = XCoord + changeInDis();
-    }
-    else if(drivingDirection = yPos) {
-      YCoord = YCoord + changeInDis();
-    }
-    else if( drivingDirection = xNeg) {
-      XCoord = XCoord - changeInDis();
-    }
-    else if(drivingDirection = yNeg) {
-      YCoord = YCoord - changeInDis();
-    }
-  
+
+  if (drivingDirection = xPos){
+    XCoord = XCoord + changeInDis();
+  }
+  else if(drivingDirection = yPos) {
+    YCoord = YCoord + changeInDis();
+  }
+  else if( drivingDirection = xNeg) {
+    XCoord = XCoord - changeInDis();
+  }
+  else if(drivingDirection = yNeg) {
+    YCoord = YCoord - changeInDis();
+  }
+
 }
+
 

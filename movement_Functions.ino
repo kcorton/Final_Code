@@ -9,11 +9,29 @@
 void turn(int turnDeg){
 
   // if turn has been completed 
-  stopAllDrive();
-  storeLocation();
-  turnStateMachine(turnDeg);  
-  turnComplete = true;
+  if (mainState == findingFire){
+    stopAllDrive();
+    storeLocation();
+    turnStateMachine(turnDeg);  
+    turnComplete = true;
+  }
+  else if (mainState == extinguishingFire) {
+    stopAllDrive();
+    turnComplete = true;
+  }
+  else if (mainState = extinguishingFire) { 
+    stopAllDrive();
+    turnComplete = true;
+  }
+}
 
+/*********************************************************************************************/
+// Dis Traveled Complete Function
+// returns true when the correct distance has been traveled
+
+
+boolean disTraveledComplete(int desiredDis) {
+  
 }
 
 /*********************************************************************************************/
@@ -24,9 +42,10 @@ void turn(int turnDeg){
 
 void driveStraightDesDis(int desDis) {
 
-  // if desired distance has been driven 
-  stopAllDrive();
-  disTravComplete = true; 
+  if(disTraveledComplete(desDis)){ 
+    stopAllDrive();
+    disTravComplete = true;
+  } 
 
 }
 
@@ -54,5 +73,6 @@ void driveStraightForwardEnc(void) {
 // this functions keeps the robot straight using the encoders and keeps it a certain distance from the wall 
 
 void followWall(void) {
-  
+
 }
+

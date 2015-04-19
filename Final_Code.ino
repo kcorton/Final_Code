@@ -52,19 +52,25 @@
 # define SeenCliffBackOnCourse 3
 
 //Extinguish Fire State Machine States
-#define scaning 0
-#define turningToFlame 1
-#define drivingToCandle 2
-#define activatingFan 3
-#define checkingFlame 4
-#define flameIsOut 5
+#define drivingToCandle 0
+#define activatingFan 1
+#define checkingFlame 2
+#define flameIsOut 3
+
+// Driving to Candle State Machine States
+#define scanning 0
+#define turningToCandle 1
+#define drivingForTime 2
+#define updatingLocation 3
 
 //Return Home State Machine States
-#define gettingCoordinates 0
-#define determiningX 1
-#define drivingToX 2
-#define determiningY 3
-#define drivingToY 4
+#define gettingToWallTurningX 0
+#define gettingBackToWallX 1
+#define gettingToWallTurningY 2
+#define gettingBackToWallY 3
+#define gettingCoordinates 4
+#define determiningDriveDirrection 5
+#define drivingToCoordinate 6
 
 //Fan Sweep State Machine
 #define raisingArm 0
@@ -103,6 +109,9 @@ int highPos = 460;
 int lowPos = 320;
 long initTime = 0;
 
+// Variables for Return Home
+int disToNextCoor = 0;
+
 // State variables
 int mainState = 0; 
 int mazeState = 0; 
@@ -113,6 +122,7 @@ int extState = 0;
 int rtnState = 0; 
 int armState = 0; 
 int drivingDirection = 0; 
+int driveToCandleState = 0;
 
 // Variables to keep track of where the robot is and has been
 int XCoord = 0; 
@@ -133,17 +143,17 @@ volatile long rightCounter = 0;
 volatile long leftCounter = 0;
 
 void setup(){
-  
+
   Serial.begin(9600);
-  
+
   // need some way to determine which direction the robot is initially facing 
-  
+
   // setup drive motors
   pinMode(leftMotorF, OUTPUT);
   pinMode(leftMotorB, OUTPUT);
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
-  
+
   // setup Fan Motor
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
@@ -151,15 +161,15 @@ void setup(){
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
   Timer1.attachInterrupt(timerISR);
-  
+
   // set up interrups for drive Motors
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);  
- 
+
 }
 
 void loop() {
- 
+
   switch (mainState) {
   case findingFire: // navigating the maze looking for the fire
     findFire();
@@ -181,53 +191,53 @@ void loop() {
 // FindFire Switch State
 
 void findFire(void) {
-  
+
   // looks for the fire 
   lookForFire();
-  
+
 
   switch (mazeState) {
-    case followingWall:
-      followWall();
-      
-      if(checkFrontDis(frontWallDist)){
-        mazeState = seeingWallFront;
-      }
-      
-      // if the sonar sees a jump in the distance and is no longer next to a wall 
-      mazeState = loosingWall;
-      
-      break;
-    case seeingWallFront:
-      seeWallFront();
-      
-      if(turnComplete){
-        turnComplete = false;
-        mazeState = followingWall;
-        seeWallState = 0;
-      }
-      
-      break;
-    case loosingWall:
-      lostWall();
-      
-      //once sonar can see a wall again
-      if(checkSideDis(closeWallDist)){
-        mazeState = followingWall;
-        lostWallState = 0;
-      }
-      break;
-    case seeingCliff: // this state will be entered by an interrupt triggered by our line tracker **** KAREN THIS INTERRUPT NEEDS TO STOP ROBOT AND SET CLIFFSTATE = 0
-      seenCliff();
-      
-      //once sonar can see a wall again 
-      if(checkSideDis(closeWallDist)){
-        mazeState = followingWall;
-        cliffState = 0;
-      }
-      
-      break; 
-    
+  case followingWall:
+    followWall();
+
+    if(checkFrontDis(frontWallDist)){
+      mazeState = seeingWallFront;
+    }
+
+    // if the sonar sees a jump in the distance and is no longer next to a wall 
+    mazeState = loosingWall;
+
+    break;
+  case seeingWallFront:
+    seeWallFront();
+
+    if(turnComplete){
+      turnComplete = false;
+      mazeState = followingWall;
+      seeWallState = 0;
+    }
+
+    break;
+  case loosingWall:
+    lostWall();
+
+    //once sonar can see a wall again
+    if(checkSideDis(closeWallDist)){
+      mazeState = followingWall;
+      lostWallState = 0;
+    }
+    break;
+  case seeingCliff: // this state will be entered by an interrupt triggered by our line tracker **** KAREN THIS INTERRUPT NEEDS TO STOP ROBOT AND SET CLIFFSTATE = 0
+    seenCliff();
+
+    //once sonar can see a wall again 
+    if(checkSideDis(closeWallDist)){
+      mazeState = followingWall;
+      cliffState = 0;
+    }
+
+    break; 
+
 
   }
 
@@ -238,25 +248,6 @@ void findFire(void) {
 
 void extinguishFire(void){
   switch (extState) {
-  case scaning: // scans full range of fire sensor
-    scan();
-
-    if(scanComplete) {
-      extState = turningToFlame;
-      scanComplete = false; 
-    }
-
-    break;
-
-  case turningToFlame: // uses highest fire value's servo position and gyro to rotate robot towards flame
-    turnTowardFlame();
-
-    if(turnComplete){
-        turnComplete = false;
-        extState = drivingToCandle;
-      }
-     
-    break;
 
   case drivingToCandle: 
     driveToCandle();
@@ -300,53 +291,73 @@ void extinguishFire(void){
 void returnHome(void) {
 
   switch (rtnState) {
+  case gettingToWallTurningX: 
+    turn(angleNeededX());
+    if (turnComplete) {
+      turnComplete = false; 
+      rtnState = gettingBackToWallX;
+    }
+    break;
+  case gettingBackToWallX:
+    driveStraightDesDis(determineDistanceX());
+    if (disTravComplete){
+      disTravComplete = false;
+      rtnState = gettingToWallTurningY;
+      updateLocation();
+    }
+    break;
+  case gettingToWallTurningY: 
+    turn(determineDriveDirrection());
+    if (turnComplete) {
+      turnComplete = false; 
+      rtnState = gettingBackToWallY;
+    }
+    break;    
+  case gettingBackToWallY:
+    driveStraightDesDis(determineDistanceY());
+    if (disTravComplete){
+      disTravComplete = false;
+      rtnState = gettingCoordinates;
+      updateLocation();
+    }
+    break;    
   case gettingCoordinates:
     getCoordinates();
 
     // if getCoordinate return a next coordinate 
-    rtnState = determiningX;
+    rtnState = determiningDriveDirrection;
 
     //if getCoordinate returns 0 for no next coordinate
     mainState = madeItHome;
 
     break;
-  case determiningX:
-    determineX();
+  case determiningDriveDirrection:
+    turn(determinedriveDirection());
 
     if(turnComplete){
-        turnComplete = false;
-        rtnState = drivingToX;
-      }
-    
-
-    break;
-  case drivingToX:
-    driveToX(); 
-
-    if ( XCoord = nextXCoord){ 
-      rtnState = determiningY; 
+      turnComplete = false;
+      rtnState = drivingToCoordinate;
     }
+    break;
+  case drivingToCoordinate:
+    driveToNextCoor(); 
+
+    if(checkFrontDis(frontWallDist)){
+      stopAllDrive();
+      updateLocation();
+      rtnState = gettingCoordinates;
+    }
+    if(disTraveledComplete(disToNextCoor)) { 
+      stopAllDrive();
+      updateLocation();
+        rtnState = gettingCoordinates;
+    }
+
     break;   
-  case determiningY:
-    determineY();
 
-    if(turnComplete){
-        turnComplete = false;
-        rtnState = drivingToY;
-      }
-    
-
-    break;
-  case drivingToY:
-    driveToY();  
-
-    if(YCoord = nextYCoord){ 
-      rtnState = gettingCoordinates; 
-    }
-    break; 
   }
-
 }
+
 
 
 

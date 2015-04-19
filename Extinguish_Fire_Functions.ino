@@ -6,7 +6,7 @@
 // turns a global variable scanComplete to 1 once it has finished
 
 void scan(void) {
-  
+
   // if scan is complete 
   scanComplete = true;
 
@@ -24,11 +24,39 @@ void turnTowardFlame(void){
 // Drive to Candle Function
 
 void driveToCandle(void) {
+  switch (driveToCandleState) {
+    case scanning:
+    scan();
+    
+    if(scanComplete) {
+      driveToCandleState = turningToCandle;
+      scanComplete = false; 
+    }
+    break;
+    
+    case turningToCandle: 
+        turnTowardFlame();
 
+    if(turnComplete){
+      turnComplete = false;
+      extState = drivingForTime;
+    }
 
-  scan(); 
-  turnTowardFlame();
-  driveStraightForwardEnc();
+    break;
+    
+    
+    case drivingForTime:
+    driveStraightForwardEnc();
+    // if it's been a certain amount of time 
+    driveToCandleState = updatingLocation;
+    
+    break;
+    
+    case updatingLocation:
+      updateAngleDriveLocation();
+      driveToCandleState = scanning;
+      break;
+  }  
 
 }
 
@@ -43,23 +71,23 @@ void activateFan(void) {
   digitalWrite(fanMotorPin, HIGH);
   armTimePassed = countTime - armInitTime;
   switch(armState){
-    case raisingArm:
-      armMotor.write(108);
-      if(analogRead(armPotPin) > highPos){
-        armState = reachedTop;
-      }
-      break;
-    case reachedTop:
-      initTime = countTime;
-      armState = waitingAtTop;
-      break;
-    case waitingAtTop: 
-      armMotor.write(100);
-      if((armTimePassed-initTime) > armWaitTime){
+  case raisingArm:
+    armMotor.write(108);
+    if(analogRead(armPotPin) > highPos){
+      armState = reachedTop;
+    }
+    break;
+  case reachedTop:
+    initTime = countTime;
+    armState = waitingAtTop;
+    break;
+  case waitingAtTop: 
+    armMotor.write(100);
+    if((armTimePassed-initTime) > armWaitTime){
       armState = loweringArm;
-      }
-      break;
-    case loweringArm:
+    }
+    break;
+  case loweringArm:
     armMotor.write(93);
     if (analogRead(armPotPin) <=  lowPos){
       armMotor.write(90);
@@ -78,3 +106,13 @@ void activateFan(void) {
 void reportFlame(void) {
 
 }
+
+
+/*********************************************************************************************/
+// Updating Angle Drive Location 
+// this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
+
+void updateAngleDriveLocation(void){
+  
+}
+

@@ -4,7 +4,7 @@
 //ultrasonic ultrasonicC(23, 24);
 //ultrasonic ultrasonicF(25, 26);
 
-int leftMotorF = 12;
+int leftMotorF = 6;
 int leftMotorB = 11;
 int leftEncoderB = 10;
 int leftEncoderA = 2;

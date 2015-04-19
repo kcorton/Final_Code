@@ -15,51 +15,11 @@ void getCoordinates(void) {
 }
 
 /*********************************************************************************************/
-// Determine X function
+// determineDriveDirection Function
+// this function determines which direction to turn the robot and returns that value
 
-// uses the current and next X value to determine which direction pos or neg X to drive and turns that way
+int determinedriveDirection(void){
 
-void determineX(void) {
-
-  // if needs to turn left 
-  turn( - ninetyDeg);
-
-  // if needs to turn right 
-  turn ( ninetyDeg);
-
-}
-
-/*********************************************************************************************/
-// Driving to X function
-
-//Drives to next X coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
-
-void driveToX(void) {
-  driveToNextCoor();
-}
-
-/*********************************************************************************************/
-// Determine Y function
-
-// uses the current and next Y value to determine which direction pos or neg Y to drive and turns that way
-
-void determineY(void) {
-
-  // if needs to turn left 
-  turn( - ninetyDeg);
-
-  // if needs to turn right 
-  turn ( ninetyDeg);
-
-}
-
-/*********************************************************************************************/
-// Driving to Y function
-
-//Drives to next Y coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
-
-void driveToY(void) {
-  driveToNextCoor();
 }
 
 
@@ -69,13 +29,49 @@ void driveToY(void) {
 // drives to next Coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
 
 void driveToNextCoor(void) {
-  
+
   // if sensor value is returning close wall value 
   followWall();
-  
+
   // if sensor sees no close wall 
   driveStraightForwardEnc();
+
+}
+
+/*********************************************************************************************/
+// Angle Needed X
+// returns the angle needed to turn to drive the robot to the correct x value when returning to the wall
+// this will probably use whatever angle we originally turned or possibly the gyro
+
+int angleNeededX(void){
+  
+}
+
+/*********************************************************************************************/
+// determine Distance X
+// determines how far the robot needs to drive in the X direction and returns that value
+
+int determineDistanceX(void) {
   
 }
 
 
+/*********************************************************************************************/
+// Determine Distance Y function
+// determines how far the robot needs to drive in the Y direction and returns that value
+
+int determineDistanceY(void) {
+  
+}
+
+
+/*********************************************************************************************/
+// Determine Drive Dirrection Function
+// determines which dirrection the robot needs to turn and returns that value in degrees
+// clockwise = pos
+// counterclockwise = neg
+// also sets a global variable with how far it needs to drive in that direction
+
+int determineDriveDirrection(void) {
+  
+}
