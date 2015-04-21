@@ -41,9 +41,11 @@
 # define seeWallTurningState 1
 
 // Lost Wall State Machine States
-# define lostWallkeepDrivingStraight 0
+# define lostWallKeepDrivingStraight 0
 # define lostWallTurning 1
-# define lostWallDrivingStraight 2
+# define lostWallKeepDrivingStraight2 2
+# define lostWallTurning2 3
+# define lostWallDrivingStraight 4
 
 // Seen Cliff State Machine States
 # define seenCliffStoppingDrive 0

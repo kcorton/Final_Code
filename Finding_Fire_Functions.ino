@@ -7,6 +7,19 @@ void storeLocation(void) {
 }
 
 /*********************************************************************************************/
+// Look For Fire function
+
+// This function is constantly polled when navigating the maze
+// it rotates the servo and if it ever sees a "flame" changes the main State 
+
+void lookForFire(void) {
+
+  // if the fire has been found 
+  mainState = extinguishingFire;
+
+}
+
+/*********************************************************************************************/
 // See Wall Front Function
 // this function stops the robot, turns it 90 degress to the right, and updates which x and y variables should be updating as the robot drives
 
@@ -32,7 +45,7 @@ void seeWallFront(void) {
 void lostWall(void) {
 
   switch (lostWallState) {
-  case lostWallkeepDrivingStraight: 
+  case lostWallKeepDrivingStraight: 
     driveStraightDesDis(forwardDisToTurnAboutWall);
     if(disTravComplete) {
       lostWallState = lostWallTurning;
@@ -43,10 +56,28 @@ void lostWall(void) {
     updateLocation();
     turn(-ninetyDeg);
     if(turnComplete){
+      lostWallState = lostWallKeepDrivingStraight2;
+      turnComplete = false;
+    }
+    break; 
+    
+  case lostWallKeepDrivingStraight2: 
+    driveStraightDesDis(forwardDisToTurnAboutWall);
+    if(disTravComplete) {
+      lostWallState = lostWallTurning2;
+      disTravComplete = false;
+    }
+    break;
+    
+  case lostWallTurning2: 
+    updateLocation();
+    turn(-ninetyDeg);
+    if(turnComplete){
       lostWallState = lostWallDrivingStraight;
       turnComplete = false;
     }
     break; 
+    
   case lostWallDrivingStraight: 
     driveStraightForwardEnc();
     break;
