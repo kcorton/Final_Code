@@ -1,12 +1,12 @@
 #include <TimerOne.h>
 
-int leftMotorF = 6;
-int leftMotorB = 11;
-int leftEncoderB = 10;
+int leftMotorF = 10;
+int leftMotorB = 9;
+int leftEncoderB = 8;
 int leftEncoderA = 2;
-int rightMotorF = 9;
-int rightMotorB = 8;
-int rightEncoderB = 7;
+int rightMotorF = 7;
+int rightMotorB = 6;
+int rightEncoderB = 5;
 int rightEncoderA = 3;
 
 float distToGoL = 0.0;
@@ -39,9 +39,20 @@ float distCenter = 0;
 float distFront = 0;
 
 float inchesPerTick = .0032751103;
+
+float velocityLeft = 0.0;
+float velocityRight = 0.0;
+boolean countTriggered = false;
+long lastLeft = 0;
+long lastRight = 0;
+
+int fanPin = 22;
 //================================================================================================================
 void setup(){
 
+  pinMode(fanPin, OUTPUT);
+  digitalWrite(fanPin,LOW);
+  
   /* set up the timer */
   Timer1.initialize(100000);	               
   Timer1.attachInterrupt(timerISR);           
@@ -57,21 +68,26 @@ void setup(){
   Serial.begin(9600);
 }
 //================================================================================================================
+void calcVelocity(){
+  if(countTriggered){
+    velocityLeft = (leftCounter - lastLeft) / 0.1;
+    velocityRight = (rightCounter - lastRight) / 0.1;
+    countTriggered = false;
+//    Serial.print(velocityLeft);
+//    Serial.print("  ");
+//    Serial.println(velocityRight);
+  }
+}
+//================================================================================================================
 void timerISR(void) {
   // we are here because the timer expired and generated an interrupt
   if (accelTime <= 10){
     accelTime++;                             
   }
+  countTriggered = true;
 } 
 //================================================================================================================
 void loop(){
-
-  leftDist = ticksToInches(leftCounter);
-  rightDist = ticksToInches(rightCounter);
-
-  leftDistTemp = ticksToInches(leftCounterTemp);
-  rightDistTemp = ticksToInches(rightCounterTemp);
-
   if(leftSpeed >= 0){
     analogWrite(leftMotorF,leftSpeed);
     analogWrite(leftMotorB,0);
@@ -88,32 +104,10 @@ void loop(){
     analogWrite(rightMotorF,0);
     analogWrite(rightMotorB,rightSpeed);
   }
-
-  proportionalDrive(leftCounter,rightCounter,leftDist,rightDist);
-}
-//================================================================================================================
-void proportionalDrive(long int leftTicks, long int rightTicks, float distL, float distR) {
-  //acceleration
-  if(accelTime <= 10){
-    baseSpeed = accelTime;
-  }
-  else{
-   baseSpeed = travelSpeed; 
-  }
-  
-  distToGoL = desiredDist - distL;
-  distToGoR = desiredDist - distR; 
-  
-  //                keeps robot straight                        slows/stops robot at desired distance
-  leftSpeed = (baseSpeed - Ka * (leftTicks - rightTicks)) * (distToGoL/sqrt((distToGoL * distToGoL) + Kb));
-  //                keeps robot straight                        slows/stops robot at desired distance
-  rightSpeed = (baseSpeed + Ka * (leftTicks - rightTicks)) * (distToGoR/sqrt((distToGoR * distToGoR) + Kb));
-  
   Serial.print(leftCounter);
   Serial.print("  ");
   Serial.println(rightCounter);
 }
-
 //================================================================================================================
 float ticksToInches(long int ticks){ 
   return (inchesPerTick * ticks);
@@ -121,22 +115,18 @@ float ticksToInches(long int ticks){
 //================================================================================================================
 void leftTick(){
   if (digitalRead(leftEncoderB) == HIGH){
-    leftCounter--; 
-    leftCounterTemp--;
+    leftCounter++; 
   }
   else{
-    leftCounter++;
-    leftCounterTemp++; 
+    leftCounter--;
   }
 }
 //================================================================================================================
 void rightTick(){
   if (digitalRead(rightEncoderB) == HIGH){
     rightCounter++;
-    rightCounterTemp++; 
   }
   else{
     rightCounter--;
-    rightCounterTemp--; 
   }
 }
