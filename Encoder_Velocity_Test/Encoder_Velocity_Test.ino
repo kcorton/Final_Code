@@ -73,9 +73,9 @@ void calcVelocity(){
     velocityLeft = (leftCounter - lastLeft) / 0.1;
     velocityRight = (rightCounter - lastRight) / 0.1;
     countTriggered = false;
-//    Serial.print(velocityLeft);
-//    Serial.print("  ");
-//    Serial.println(velocityRight);
+    Serial.print(velocityLeft);
+    Serial.print("  ");
+    Serial.println(velocityRight);
   }
 }
 //================================================================================================================

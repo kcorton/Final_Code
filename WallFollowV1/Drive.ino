@@ -2,14 +2,14 @@
 //and running/using the encoders
 
 /* motor and encoder pins */
-int leftMotorF = 6;
-int leftMotorB = 11;
-int leftEncoderB = 10;
+int leftMotorF = 10;
+int leftMotorB = 9;
+int leftEncoderB = 8;
 int leftEncoderA = 2;
 
-int rightMotorF = 9;
-int rightMotorB = 8;
-int rightEncoderB = 7;
+int rightMotorF = 7;
+int rightMotorB = 6;
+int rightEncoderB = 5;
 int rightEncoderA = 3;
 
 /* These keep track of encoder ticks */

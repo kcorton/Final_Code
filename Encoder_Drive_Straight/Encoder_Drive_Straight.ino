@@ -1,12 +1,12 @@
 #include <TimerOne.h>
 
-int leftMotorF = 6;
-int leftMotorB = 11;
-int leftEncoderB = 10;
+int leftMotorF = 10;
+int leftMotorB = 9;
+int leftEncoderB = 8;
 int leftEncoderA = 2;
-int rightMotorF = 9;
-int rightMotorB = 8;
-int rightEncoderB = 7;
+int rightMotorF = 7;
+int rightMotorB = 6;
+int rightEncoderB = 5;
 int rightEncoderA = 3;
 
 float distToGoL = 0.0;
@@ -26,10 +26,10 @@ volatile long int leftCounterTemp = 0;
 
 float leftDist = 0;
 float leftDistTemp =0; 
-int leftSpeed = 100;
+int leftSpeed = 80;
 float rightDist = 0;
 float rightDistTemp =0; 
-int rightSpeed = 100;
+int rightSpeed = 80;
 
 volatile int accelTime;
 
@@ -81,7 +81,7 @@ void loop(){
     analogWrite(leftMotorB,leftSpeed);
   }
   if(rightSpeed >= 0){
-    analogWrite(rightMotorF,rightSpeed);
+    analogWrite(rig htMotorF,rightSpeed);
     analogWrite(rightMotorB,0);
   }
   else{
@@ -89,7 +89,7 @@ void loop(){
     analogWrite(rightMotorB,rightSpeed);
   }
 
-  proportionalDrive(leftCounter,rightCounter,leftDist,rightDist);
+  //proportionalDrive(leftCounter,rightCounter,leftDist,rightDist);
 }
 //================================================================================================================
 void proportionalDrive(long int leftTicks, long int rightTicks, float distL, float distR) {
