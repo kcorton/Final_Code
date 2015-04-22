@@ -3,13 +3,50 @@
 // scans the full range of the flame sensor servo, saving positions and readings in an array, 
 // and saving a global variable with the servo position at the highest flame sensing
 // this is used once the flame has been seen
-// turns a global variable scanComplete to 1 once it has finished
 
 void scan(void) {
-
-  // if scan is complete 
-  scanComplete = true;
-
+  
+  int currFlameVal;
+  
+  if(countTime - lastFireTimeCount > 28) {
+  
+    if(fireServoPos > 180) {
+      
+      fireServoPos = 0; // reset the position
+      lastFlameVal = 2000; // reset the last flame val
+      flameServo.write(0); // write the servo back to reset position
+      scanComplete = true; //Indicate the scan is complete
+      
+      Serial.println("DONEEEEE");
+      Serial.println(firePosition);
+      
+    }
+    
+    else {
+      
+      flameServo.write(fireServoPos);
+      currFlameVal = analogRead(firePin);
+      
+      Serial.print("Position ");
+      Serial.print(fireServoPos);
+      Serial.print("Flame Value ");
+      Serial.println(currFlameVal);
+      
+      if(currFlameVal < lastFlameVal) {
+        
+        lastFlameVal = currFlameVal;
+        firePosition =  fireServoPos;
+      
+      }
+      
+      fireServoPos += 10;
+      
+    }
+      
+      lastFireTimeCount = countTime; // reset the stored time variable
+    
+  }
+    
 }
 
 /*********************************************************************************************/

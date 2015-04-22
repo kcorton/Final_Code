@@ -23,6 +23,7 @@
 #define rightMotorB 8
 #define rightEncoderB 7
 #define rightEncoderA 3
+#define firePin A1
 
 // Main State machine States
 #define findingFire 0
@@ -103,6 +104,7 @@
 
 // Motor and Servo Declarations
 Servo armMotor;
+Servo flameServo;
 
 // Variables for Activate Fan Function   
 int armTimePassed, armInitTime;
@@ -110,6 +112,13 @@ int armWaitTime = 100;
 int highPos = 460;
 int lowPos = 320;
 long initTime = 0;
+
+// Variables for Fire Sensor Functions
+int servoIncreasing = 0;
+int fireServoPos = 0;
+long lastFireTimeCount = 0;
+int firePosition; 
+int lastFlameVal = 2000;
 
 // Variables for Return Home
 int disToNextCoor = 0;
@@ -127,8 +136,8 @@ int drivingDirection = 0;
 int driveToCandleState = 0;
 
 // Variables to keep track of where the robot is and has been
-int XCoord = 0; 
-int YCoord = 0; 
+int xCoord = 0; 
+int yCoord = 0; 
 int nextXCoord = 0; 
 int nextYCoord = 0; 
 
@@ -159,6 +168,9 @@ void setup(){
   // setup Fan Motor
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
+  
+  // setup Flame Servo
+  flameServo.attach(9, 544, 2400);
 
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second

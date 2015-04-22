@@ -9,14 +9,58 @@ void storeLocation(void) {
 /*********************************************************************************************/
 // Look For Fire function
 
+
 // This function is constantly polled when navigating the maze
 // it rotates the servo and if it ever sees a "flame" changes the main State 
 
 void lookForFire(void) {
+  
+  int flameVal;
+  
+  if(countTime - lastFireTimeCount >= 15) {
+    
+    /* Read current fire sensor value */
+    flameVal = analogRead(firePin);
+    Serial.println(flameVal);
+    //Serial.println(fireServoPos);
+  
+    flameServo.write(fireServoPos);
+    
+    if(servoIncreasing) {
+      if(fireServoPos <= 170) {
+        fireServoPos += 10; 
+        flameServo.write(fireServoPos);     
+      }
+      else {
+        servoIncreasing = 0;
+      }
+    }
+    else {
+      if(fireServoPos >= 10) {
+        fireServoPos -= 10;
+        flameServo.write(fireServoPos);
+      }
+      else {
+        servoIncreasing = 1;
+      }
+    }
+    
+  
+    /* If the flame is found */
+    if(flameVal < 200) {
+       /* Change to extiguish fire state */
+       mainState = extinguishingFire;
+       fireServoPos = 0; // reset the position
+       lastFlameVal = 2000; // reset the last flame val
+       flameServo.write(0); // write the servo back to reset position
+       scanComplete = true; //Indicate the scan is complete
+       Serial.println("Fire Found");
+    }
 
-  // if the fire has been found 
-  mainState = extinguishingFire;
+    lastFireTimeCount = countTime; // reset the stored time variable
 
+  }
+  
 }
 
 /*********************************************************************************************/

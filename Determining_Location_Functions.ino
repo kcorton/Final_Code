@@ -64,16 +64,16 @@ int changeInDis(void) {
 void updateLocation(void) {
 
   if (drivingDirection = xPos){
-    XCoord = XCoord + changeInDis();
+    xCoord = xCoord + changeInDis();
   }
   else if(drivingDirection = yPos) {
-    YCoord = YCoord + changeInDis();
+    yCoord = yCoord + changeInDis();
   }
   else if( drivingDirection = xNeg) {
-    XCoord = XCoord - changeInDis();
+    xCoord = xCoord - changeInDis();
   }
   else if(drivingDirection = yNeg) {
-    YCoord = YCoord - changeInDis();
+    yCoord = yCoord - changeInDis();
   }
 
 }
