@@ -29,9 +29,8 @@ void turn(int turnDeg){
 // Dis Traveled Complete Function
 // returns true when the correct distance has been traveled
 
-
 boolean disTraveledComplete(int desiredDis) {
-  
+
 }
 
 /*********************************************************************************************/
@@ -46,7 +45,6 @@ void driveStraightDesDis(int desDis) {
     stopAllDrive();
     disTravComplete = true;
   } 
-
 }
 
 /*********************************************************************************************/
@@ -75,4 +73,5 @@ void driveStraightForwardEnc(void) {
 void followWall(void) {
 
 }
+
 

@@ -5,48 +5,48 @@
 // this is used once the flame has been seen
 
 void scan(void) {
-  
+
   int currFlameVal;
-  
+
   if(countTime - lastFireTimeCount > 28) {
-  
+
     if(fireServoPos > 180) {
-      
+
       fireServoPos = 0; // reset the position
       lastFlameVal = 2000; // reset the last flame val
       flameServo.write(0); // write the servo back to reset position
       scanComplete = true; //Indicate the scan is complete
-      
+
       Serial.println("DONEEEEE");
       Serial.println(firePosition);
-      
+
     }
-    
+
     else {
-      
+
       flameServo.write(fireServoPos);
       currFlameVal = analogRead(firePin);
-      
+
       Serial.print("Position ");
       Serial.print(fireServoPos);
       Serial.print("Flame Value ");
       Serial.println(currFlameVal);
-      
+
       if(currFlameVal < lastFlameVal) {
-        
+
         lastFlameVal = currFlameVal;
         firePosition =  fireServoPos;
-      
+
       }
-      
+
       fireServoPos += 10;
-      
+
     }
-      
-      lastFireTimeCount = countTime; // reset the stored time variable
-    
+
+    lastFireTimeCount = countTime; // reset the stored time variable
+
   }
-    
+
 }
 
 /*********************************************************************************************/
@@ -62,17 +62,17 @@ void turnTowardFlame(void){
 
 void driveToCandle(void) {
   switch (driveToCandleState) {
-    case scanning:
+  case scanning:
     scan();
-    
+
     if(scanComplete) {
       driveToCandleState = turningToCandle;
       scanComplete = false; 
     }
     break;
-    
-    case turningToCandle: 
-        turnTowardFlame();
+
+  case turningToCandle: 
+    turnTowardFlame();
 
     if(turnComplete){
       turnComplete = false;
@@ -80,19 +80,19 @@ void driveToCandle(void) {
     }
 
     break;
-    
-    
-    case drivingForTime:
+
+
+  case drivingForTime:
     driveStraightForwardEnc();
     // if it's been a certain amount of time 
     driveToCandleState = updatingLocation;
-    
+
     break;
-    
-    case updatingLocation:
-      updateAngleDriveLocation();
-      driveToCandleState = scanning;
-      break;
+
+  case updatingLocation:
+    updateAngleDriveLocation();
+    driveToCandleState = scanning;
+    break;
   }  
 
 }
@@ -150,6 +150,7 @@ void reportFlame(void) {
 // this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
 
 void updateAngleDriveLocation(void){
-  
+
 }
+
 

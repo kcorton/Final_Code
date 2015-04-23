@@ -3,7 +3,10 @@
 // this function saves the current location in an array to be used when the robot returns home
 
 void storeLocation(void) {
-
+  currentArrayRow++; 
+  locationsArray[currentArrayRow][xCol] = xCoord;
+  locationsArray[currentArrayRow][yCol] = yCoord;
+  
 }
 
 /*********************************************************************************************/
@@ -14,18 +17,18 @@ void storeLocation(void) {
 // it rotates the servo and if it ever sees a "flame" changes the main State 
 
 void lookForFire(void) {
-  
+
   int flameVal;
-  
+
   if(countTime - lastFireTimeCount >= 15) {
-    
+
     /* Read current fire sensor value */
     flameVal = analogRead(firePin);
     Serial.println(flameVal);
     //Serial.println(fireServoPos);
-  
+
     flameServo.write(fireServoPos);
-    
+
     if(servoIncreasing) {
       if(fireServoPos <= 170) {
         fireServoPos += 10; 
@@ -44,23 +47,23 @@ void lookForFire(void) {
         servoIncreasing = 1;
       }
     }
-    
-  
+
+
     /* If the flame is found */
     if(flameVal < 200) {
-       /* Change to extiguish fire state */
-       mainState = extinguishingFire;
-       fireServoPos = 0; // reset the position
-       lastFlameVal = 2000; // reset the last flame val
-       flameServo.write(0); // write the servo back to reset position
-       scanComplete = true; //Indicate the scan is complete
-       Serial.println("Fire Found");
+      /* Change to extiguish fire state */
+      mainState = extinguishingFire;
+      fireServoPos = 0; // reset the position
+      lastFlameVal = 2000; // reset the last flame val
+      flameServo.write(0); // write the servo back to reset position
+      scanComplete = true; //Indicate the scan is complete
+      Serial.println("Fire Found");
     }
 
     lastFireTimeCount = countTime; // reset the stored time variable
 
   }
-  
+
 }
 
 /*********************************************************************************************/
@@ -104,7 +107,7 @@ void lostWall(void) {
       turnComplete = false;
     }
     break; 
-    
+
   case lostWallKeepDrivingStraight2: 
     driveStraightDesDis(forwardDisToTurnAboutWall);
     if(disTravComplete) {
@@ -112,7 +115,7 @@ void lostWall(void) {
       disTravComplete = false;
     }
     break;
-    
+
   case lostWallTurning2: 
     updateLocation();
     turn(-ninetyDeg);
@@ -121,7 +124,7 @@ void lostWall(void) {
       turnComplete = false;
     }
     break; 
-    
+
   case lostWallDrivingStraight: 
     driveStraightForwardEnc();
     break;
@@ -160,4 +163,5 @@ void seenCliff(void) {
     driveStraightForwardEnc();
   }
 }
+
 

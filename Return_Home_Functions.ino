@@ -7,19 +7,13 @@ void allDone(void) {
 
 /*********************************************************************************************/
 // Get Coordinates function 
-
 // changes the global variables NextX and NextY to the next coordinates from the array of corrdinates created when traversing maze
 
 void getCoordinates(void) {
-
-}
-
-/*********************************************************************************************/
-// determineDriveDirection Function
-// this function determines which direction to turn the robot and returns that value
-
-int determinedriveDirection(void){
-
+  currentArrayRow--;
+  nextXCoord = locationsArray[currentArrayRow][xCol];
+  nextYCoord = locationsArray[currentArrayRow][yCol];  
+ 
 }
 
 
@@ -30,11 +24,15 @@ int determinedriveDirection(void){
 
 void driveToNextCoor(void) {
 
-  // if sensor value is returning close wall value 
+  if(checkSideDis(closeWallDist)){
+  // if the sonar sees a close wall
   followWall();
-
+  }
+  
+  else {
   // if sensor sees no close wall 
   driveStraightForwardEnc();
+  }
 
 }
 
@@ -44,7 +42,7 @@ void driveToNextCoor(void) {
 // this will probably use whatever angle we originally turned or possibly the gyro
 
 int angleNeededX(void){
-  
+
 }
 
 /*********************************************************************************************/
@@ -52,7 +50,7 @@ int angleNeededX(void){
 // determines how far the robot needs to drive in the X direction and returns that value
 
 int determineDistanceX(void) {
-  
+
 }
 
 
@@ -61,7 +59,7 @@ int determineDistanceX(void) {
 // determines how far the robot needs to drive in the Y direction and returns that value
 
 int determineDistanceY(void) {
-  
+
 }
 
 
@@ -73,5 +71,6 @@ int determineDistanceY(void) {
 // also sets a global variable with how far it needs to drive in that direction
 
 int determineDriveDirrection(void) {
-  
+
 }
+

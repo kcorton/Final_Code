@@ -92,6 +92,10 @@
 #define sideSonar 1
 #define backSonar 2
 
+// Array Columns 
+#define xCol 0
+#define yCol 1
+
 // Pre-defined Values and Distances
 #define candleDist 1
 #define frontWallDist 4
@@ -123,6 +127,14 @@ int lastFlameVal = 2000;
 // Variables for Return Home
 int disToNextCoor = 0;
 
+// Variables to keep track of where the robot is and has been
+int xCoord = 0; 
+int yCoord = 0; 
+int nextXCoord = 0; 
+int nextYCoord = 0; 
+int locationsArray[15][2] = {0};
+int currentArrayRow = 0;
+
 // State variables
 int mainState = 0; 
 int mazeState = 0; 
@@ -134,12 +146,6 @@ int rtnState = 0;
 int armState = 0; 
 int drivingDirection = 0; 
 int driveToCandleState = 0;
-
-// Variables to keep track of where the robot is and has been
-int xCoord = 0; 
-int yCoord = 0; 
-int nextXCoord = 0; 
-int nextYCoord = 0; 
 
 // boolean variables used in determining when to move to the next state
 boolean turnComplete = false; 
@@ -168,7 +174,7 @@ void setup(){
   // setup Fan Motor
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
-  
+
   // setup Flame Servo
   flameServo.attach(9, 544, 2400);
 
@@ -364,13 +370,14 @@ void returnHome(void) {
     if(disTraveledComplete(disToNextCoor)) { 
       stopAllDrive();
       updateLocation();
-        rtnState = gettingCoordinates;
+      rtnState = gettingCoordinates;
     }
 
     break;   
 
   }
 }
+
 
 
 
