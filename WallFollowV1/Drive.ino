@@ -17,7 +17,7 @@ volatile long rightCounter = 0;
 volatile long leftCounter = 0;
 
 /* Speeds of the wheels in encoder ticks per second */
-int baseSpeed = 550; //encoder ticks per second
+int baseSpeed = 980; //encoder ticks per second
 int leftSpeed = baseSpeed;
 int rightSpeed = baseSpeed;
 
