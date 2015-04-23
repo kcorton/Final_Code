@@ -63,7 +63,6 @@ float getDis(int sonarToRead){
 void ping(int sensorToPing){
   if(!waiting){
     int pingPin;
-    
     switch(sensorToPing){
       case 1:{    //FRONTSONAR
         pingPin = frontPingPin;
@@ -78,6 +77,7 @@ void ping(int sensorToPing){
         break;
       }
     }
+    // Serial.print(pingPin);
   
     delay(50);  //ensures a second ping is not sent out before 
                 //the first returns
@@ -115,7 +115,7 @@ void sideSonarISR(){
     tempEchoSide = micros() - sidePingTime;
     if(tempEchoSide < 30000){
       sideEchoTime = tempEchoSide;
-      pingNext = BACKSONAR;
+      pingNext = FRONTSONAR;
     }
     else{
       pingNext = SIDESONAR; 
@@ -135,7 +135,7 @@ void backSonarISR(){
       pingNext = FRONTSONAR;
     }
     else{
-      pingNext = BACKSONAR; 
+      pingNext = FRONTSONAR; 
     }
     waiting = false;
   }

@@ -26,16 +26,11 @@ void setup(){
 //==========================================================================
 void loop(){
   followWall();
-//  ping(getNextPing());
-//  calcVelocity();
-//  Serial.print(getDis(FRONTSONAR));
-//  Serial.print("  ");
-//  Serial.print(getDis(SIDESONAR));
-//  Serial.print("  ");
-//  Serial.println(getDis(BACKSONAR));
+  ping(getNextPing());
+  Serial.println(getDis(SIDESONAR));
 }
 //==========================================================================
 void timerISR(void) {
-  //incrementAccelTime();
+  incrementAccelTime();
   countTime++;
 }

@@ -17,7 +17,7 @@ volatile long rightCounter = 0;
 volatile long leftCounter = 0;
 
 /* Speeds of the wheels in encoder ticks per second */
-int baseSpeed = 100;
+int baseSpeed = 550; //encoder ticks per second
 int leftSpeed = baseSpeed;
 int rightSpeed = baseSpeed;
 
@@ -44,10 +44,10 @@ long lastTime = 0; //holds the time of the last running of calcVelocity()
 float desiredDist = 4.0;  //the desired distance between the robot and the wall
 float distToWall = 0; //the actual distance between the robot and the wall
 float wallError = 0;  //the difference between the above two
-float Kw = 0;  //propotional multiplier which affects how much the wallError affects the speed
+float Kw = 100;  //propotional multiplier which affects how much the wallError affects the speed
 float velocityError = 0; //the difference between the speeds of the wheels
-float Kv = 0;  //propotional multiplier which affects how much the velocityError affects the speed
-volatile int accelTime;  //used as a multiplier to slow the robot's acceleration
+float Kv = 0.5;  //propotional multiplier which affects how much the velocityError affects the speed
+volatile float accelTime;  //used as a multiplier to slow the robot's acceleration
 //==========================================================================
 void initializeMotors(){
   //Motor pin declarations
@@ -78,8 +78,8 @@ int getAccelTime(){
 //==========================================================================
 //increments accelTime
 void incrementAccelTime(){
-  if (accelTime <= 10){
-    accelTime++;                             
+  if (accelTime < 1){
+    accelTime += .05;                             
   }  
 }
 //==========================================================================
@@ -87,10 +87,10 @@ void incrementAccelTime(){
 // decrements leftCounter based on whether signal B is low or high
 void leftTick(){
   if (digitalRead(leftEncoderB) == HIGH){
-    leftCounter--; 
+    leftCounter++; 
   }
   else{
-    leftCounter++; 
+    leftCounter--; 
   }
 }
 //==========================================================================
@@ -98,10 +98,10 @@ void leftTick(){
 // decrements rightCounter based on whether signal B is low or high
 void rightTick(){
   if (digitalRead(rightEncoderB) == HIGH){
-    rightCounter++;
+    rightCounter--;
   }
   else{
-    rightCounter--;
+    rightCounter++;
   }
 }
 //==========================================================================
@@ -136,6 +136,7 @@ int mapSpeed(int inSpeed){
     inSpeed *= -1;  
   }
   //convert to an analogWrite value (0 to 255)
+  return ( (float)inSpeed/9.8 );
 }
 //==========================================================================
 //calculates the average velocity of the robot in encoder ticks per second and
@@ -159,9 +160,13 @@ void calcVelocity(){
     leftVelocity = leftChange/.1;
     rightVelocity = rightChange/.1;
     
+    //set the new initial ticks in preparation for the next run
+    lastLeftTicks = tempLeftTicks;
+    lastRightTicks = tempRightTicks; 
+    
     //increment the storing index
-    if(nextIndex = 4){
-      nextIndex = 5;  
+    if(nextIndex >= 4){
+      nextIndex = 0;  
     }
     else{
       nextIndex++;
@@ -170,10 +175,6 @@ void calcVelocity(){
     //store the left and right velocities in a 2x5 array
     speedStorage[0][nextIndex] = leftVelocity;
     speedStorage[1][nextIndex] = rightVelocity; 
-   
-    //set the new initial ticks in preparation for the next run
-    lastLeftTicks = tempLeftTicks;
-    lastRightTicks = tempRightTicks; 
   }
 }
 //==========================================================================
@@ -204,14 +205,22 @@ float getRightVeloc(){
 //follows a wall at a distance of desiredDist at an average speed
 // set by baseSpeed
 void followWall(){
+  calcVelocity();
   //calculate sonar error
   distToWall = getDis(SIDESONAR);
   wallError = desiredDist - distToWall;
   //calculate velocity error
   velocityError = getRightVeloc() - getLeftVeloc();
+  Serial.print(leftSpeed);
+  Serial.print("  ");
+  Serial.print(rightSpeed);
+  Serial.print("  ");
+//  Serial.print(getLeftVeloc());
+//  Serial.print("  ");
+//  Serial.println(getRightVeloc());
   //calculate speed based on the errors (proportional control)
-  leftSpeed = /*accelTime */ (baseSpeed + (Kw * wallError) + (Kv * velocityError));
-  rightSpeed = /*accelTime */ (baseSpeed - (Kw * wallError) - (Kv * velocityError));
+  leftSpeed = accelTime * (baseSpeed + (Kw * wallError) + (Kv * velocityError));
+  rightSpeed = accelTime * (baseSpeed - (Kw * wallError) - (Kv * velocityError));
   //set the motor speeds
   updateMotors();
 }
