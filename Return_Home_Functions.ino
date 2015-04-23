@@ -70,7 +70,7 @@ int determineDistanceY(void) {
 // counterclockwise = neg
 // also sets a global variable with how far it needs to drive in that direction
 
-int determineDriveDirrection(void) {
+int determineDriveDirection(void) {
 
 }
 

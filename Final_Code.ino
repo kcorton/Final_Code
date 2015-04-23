@@ -8,20 +8,23 @@
 #include <TimerOne.h>
 
 // Pin Values 
-#define frontSonarPin1 1
-#define frontSonarPin2 2
-#define sideSonarPin1 1
-#define sideSonarPin2 2
+#define frontPingPin 27
+#define sidePingPin 28
+#define backPingPin 29
+#define frontEchoPin 18
+#define sideEchoPin 19
+#define backEchoPin 20
 #define fanMotorPin 22
+#define fanPin 22
 #define armMotorPin 4
 #define armPotPin A4
-#define leftMotorF 6
-#define leftMotorB 11
-#define leftEncoderB 10
+#define leftMotorF 10
+#define leftMotorB 9
+#define leftEncoderB 8
 #define leftEncoderA 2
-#define rightMotorF 9
-#define rightMotorB 8
-#define rightEncoderB 7
+#define rightMotorF 7
+#define rightMotorB 6
+#define rightEncoderB 5
 #define rightEncoderA 3
 #define firePin A1
 
@@ -127,6 +130,45 @@ int lastFlameVal = 2000;
 // Variables for Return Home
 int disToNextCoor = 0;
 
+//Varables for Driveing Functions
+int baseSpeed = 980; //encoder ticks per second
+int leftSpeed = baseSpeed;
+int rightSpeed = baseSpeed;
+
+/*   Variables used by calcVelocity()   */
+float speedStorage[2][5]; //stores five samples of the velocity from the last .5 seconds
+int lastLeftTicks = 0; //holds the value of leftCounter from the previous run of calcVelocity() 
+int lastRightTicks = 0;
+int tempLeftTicks = 0; //holds the captured value of leftCounter
+int tempRightTicks = 0;
+int leftChange = 0;
+int rightChange = 0;
+float leftVelocity = 0; //encoder ticks per second
+float rightVelocity = 0;
+int nextIndex = 0; //the index currently being saved to in speedStorage
+long lastTime = 0; //holds the time of the last running of calcVelocity()
+
+/* Variables used by followWall() */
+float desiredDist = 4.0;  //the desired distance between the robot and the wall
+float distToWall = 0; //the actual distance between the robot and the wall
+float wallError = 0;  //the difference between the above two
+float Kw = 100;  //propotional multiplier which affects how much the wallError affects the speed
+float velocityError = 0; //the difference between the speeds of the wheels
+float Kv = 0.5;  //propotional multiplier which affects how much the velocityError affects the speed
+volatile float accelTime;  //used as a multiplier to slow the robot's acceleration
+
+//Variables for using the Sonar 
+long frontPingTime = 0;
+long sidePingTime = 0;
+long backPingTime = 0;
+volatile long frontEchoTime = 0;
+volatile long sideEchoTime = 0;
+volatile long backEchoTime = 0;
+int tempEchoFront = 0;
+int tempEchoSide = 0;
+int tempEchoBack = 0;
+int pingNext = frontSonar;
+
 // Variables to keep track of where the robot is and has been
 int xCoord = 0; 
 int yCoord = 0; 
@@ -153,6 +195,7 @@ boolean disTravComplete = false;
 boolean scanComplete = false;
 boolean fanSweepComplete = false;
 boolean hitTop = false;
+boolean waiting = false;
 
 // Interrupt Variables
 volatile long countTime = 0;
@@ -174,6 +217,10 @@ void setup(){
   // setup Fan Motor
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
+  
+  // setup Fan 
+  pinMode(fanPin, OUTPUT);
+  digitalWrite(fanPin,LOW);
 
   // setup Flame Servo
   flameServo.attach(9, 544, 2400);
@@ -181,6 +228,34 @@ void setup(){
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
   Timer1.attachInterrupt(timerISR);
+  
+  //Sonar pin declarations
+  pinMode(frontPingPin,OUTPUT);
+  pinMode(frontEchoPin,INPUT);
+  pinMode(sidePingPin,OUTPUT);
+  pinMode(sideEchoPin,INPUT);
+  pinMode(backPingPin,OUTPUT);
+  pinMode(backEchoPin,INPUT);
+  
+  //Motor pin declarations
+  pinMode(leftMotorF, OUTPUT);
+  pinMode(leftMotorB, OUTPUT);
+  pinMode(rightMotorF, OUTPUT);
+  pinMode(rightMotorB, OUTPUT);
+  
+  //Encoder interrupt initialization
+  attachInterrupt(0,leftTick,RISING);
+  attachInterrupt(1,rightTick,RISING);
+  
+  //Sonar interrupt initialization
+  attachInterrupt(5,frontSonarISR,CHANGE); 
+  attachInterrupt(4,sideSonarISR,CHANGE);  
+  attachInterrupt(3,backSonarISR,CHANGE);  
+  
+  //Ensures all Soonar pin pins are initialized to low
+  digitalWrite(frontPingPin,LOW);
+  digitalWrite(sidePingPin,LOW);
+  digitalWrite(backPingPin,LOW);
 
   // set up interrups for drive Motors
   attachInterrupt(0,leftTick,RISING);
@@ -189,6 +264,8 @@ void setup(){
 }
 
 void loop() {
+  
+  ping(pingNext);    ////////Change which sonars are pinged based on what the main state in
 
   switch (mainState) {
   case findingFire: // navigating the maze looking for the fire
@@ -327,7 +404,7 @@ void returnHome(void) {
     }
     break;
   case gettingToWallTurningY: 
-    turn(determineDriveDirrection());
+    turn(determineDriveDirection());
     if (turnComplete) {
       turnComplete = false; 
       rtnState = gettingBackToWallY;
@@ -352,7 +429,7 @@ void returnHome(void) {
 
     break;
   case determiningDriveDirrection:
-    turn(determinedriveDirection());
+    turn(determineDriveDirection());
 
     if(turnComplete){
       turnComplete = false;
