@@ -265,6 +265,8 @@ void setup(){
 
 void loop() {
   
+  //Serial.println(millis());
+  
   ping(pingNext);    ////////Change which sonars are pinged based on what the main state in
 
   switch (mainState) {

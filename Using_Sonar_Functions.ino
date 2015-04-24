@@ -51,6 +51,8 @@ float getDis(int sonarToRead){
   }
 }
 
+// Pings all the SOnar 
+
 void ping(int sensorToPing){
   if(!waiting){
     int pingPin;

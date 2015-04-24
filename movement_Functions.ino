@@ -7,21 +7,19 @@
 // once the turn is complete all motors stop and the global variable turnComplete is set to 1
 
 void turn(int turnDeg){
+  
 
   // if turn has been completed 
   if (mainState == findingFire){
     stopAllDrive();
     storeLocation();
     turnStateMachine(turnDeg);  
-    turnComplete = true;
   }
   else if (mainState == extinguishingFire) {
     stopAllDrive();
-    turnComplete = true;
   }
   else if (mainState = extinguishingFire) { 
     stopAllDrive();
-    turnComplete = true;
   }
 }
 
@@ -55,6 +53,9 @@ void driveStraightDesDis(int desDis) {
 // stops the drive motors from moving 
 
 void stopAllDrive(void) {
+  leftSpeed = 0; 
+  rightSpeed = 0; 
+  updateMotors();
 
 }
 

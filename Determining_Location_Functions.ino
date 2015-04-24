@@ -75,6 +75,11 @@ void updateLocation(void) {
   else if(drivingDirection = yNeg) {
     yCoord = yCoord - changeInDis();
   }
+  
+  leftCounter = 0;
+  rightCounter = 0;
+  lastLeftTicks = 0; 
+  lastRightTicks = 0;
 
 }
 
