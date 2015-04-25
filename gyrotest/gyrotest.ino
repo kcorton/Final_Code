@@ -16,7 +16,7 @@ reading of 345 corresponds to 345 * 8.75 = 3020 mdps = 3.02 dps.
 #include <Wire.h>
 #include <TimerOne.h>
 
-#define mdpsCalc 8.75
+#define turningSpeed 400
 
 L3G gyro;
 
@@ -30,6 +30,11 @@ long lastTurnTime = 0;
 long currTurnTime = 0;
 int offset = 0;
 
+/* Speeds of the wheels in encoder ticks per second */
+int baseSpeed = 980; //encoder ticks per second
+int leftSpeed = baseSpeed;
+int rightSpeed = baseSpeed;
+
 void setup() {
   
   Serial.begin(9600);
@@ -39,6 +44,8 @@ void setup() {
   
   I2C_Init();
   Gyro_Init();   
+  
+  initializeMotors();
   
   calcGyroOffset();
   
@@ -52,7 +59,7 @@ void TimerISR(void) {
 
 void loop() {
   
-  turn(-90);
+  turn(-30);
   if(turnComplete) {
     lastTurnTime = 0;
     totalDegrees = 0;
@@ -85,7 +92,7 @@ void calcGyroOffset(void) {
   
 }
     
-/* Positive turn turns right, negative turns left */
+/* Positive turn turns left, negative turns right */
 void turn(int turnDeg) {
   
   /* If enough time has passed */
@@ -101,14 +108,37 @@ void turn(int turnDeg) {
     totalDegrees += (float)mdps * ((float)currTurnTime/2000) * 2.1;
   
     if(turnDeg >= 0) {
+      
+      /* Write Changes to the motors */
+      leftSpeed = -turningSpeed;
+      rightSpeed = turningSpeed;
+      updateMotors();
+      
       if(totalDegrees >= turnDeg) {
         turnComplete = true;
+        
+        /* Stop the motors */
+        leftSpeed = 0;
+        rightSpeed = 0;
+        updateMotors();
+        
       }
     }
     
     else if(turnDeg < 0) {
+      
+      /* Write Changes to the motors */
+      leftSpeed = turningSpeed;
+      rightSpeed = -turningSpeed;
+      updateMotors();
+      
       if(totalDegrees <= turnDeg) {
         turnComplete = true;
+        
+        /* Stop the motors */
+        leftSpeed = 0;
+        rightSpeed = 0;
+        updateMotors();
       }
     }
     
