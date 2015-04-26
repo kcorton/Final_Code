@@ -95,6 +95,8 @@ void driveToCandle(void) {
     break;
   default:
     Serial.println(" HIT DRIVE TO CANDLE DEFAULT");
+    lcd.println("ERROR 05");
+    delay(5000);
     break;
   }
 
@@ -138,6 +140,9 @@ void activateFan(void) {
     
   default:
     Serial.println("HIT ACTIVATE FAN DEFAULT");
+    lcd.println("ERROR 06");
+    delay(5000);
+    break;
   }
 }
 

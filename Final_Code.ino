@@ -338,6 +338,11 @@ void loop() {
   case madeItHome: // the robot has made it home
     allDone();
     break;
+  default:
+    Serial.println("HIT MAIN LOOP DEFAULT");
+    lcd.print("ERROR 00");
+    delay(5000);
+    break;
   }
 }
 
@@ -418,10 +423,11 @@ void findFire(void) {
         Kw = wallProportionalVal; 
         lostWallState = 0;
       }
-
     break; 
-
-
+  default:
+    Serial.println("HIT FIND FIRE DEFAULT"):
+    lcd.println("ERROR 01");
+    delay(5000);
   }
 
 }
@@ -458,12 +464,16 @@ void extinguishFire(void){
 
     // else 
 
-    extState = flameIsOut ; 
+    extState = flameIsOut;
+    break; 
   case flameIsOut: 
     reportFlame(); 
     mainState = returningHome;
     break; 
-
+  default:
+    Serial.println("HIT EXTINGUISH FIRE DEFAULT"):
+    lcd.println("ERROR 02");
+    delay(5000);
 
   }
 }
@@ -535,8 +545,11 @@ void returnHome(void) {
       updateLocation();
       rtnState = gettingCoordinates;
     }
-
-    break;   
+    break; 
+  default:
+    Serial.println("HIT RETURN HOME DEFAULT"):
+    lcd.println("ERROR 03");
+    delay(5000);  
 
   }
 }
