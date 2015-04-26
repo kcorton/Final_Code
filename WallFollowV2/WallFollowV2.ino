@@ -25,7 +25,7 @@ void setup(){
 }
 //==========================================================================
 void loop(){
-  //followWall();
+  followWall();
   ping(getNextPing());
   Serial.print(getDis(FRONTSONAR));
   Serial.print("  ");
