@@ -167,16 +167,16 @@ float Kv = 0.5;  //propotional multiplier which affects how much the velocityErr
 volatile float accelTime;  //used as a multiplier to slow the robot's acceleration
 
 //Variables for using the Sonar 
-long frontPingTime = 0;
-long sidePingTime = 0;
+volatile long frontPingTime = 0;
+volatile long sidePingTime = 0;
 long backPingTime = 0;
 volatile long frontEchoTime = 0;
 volatile long sideEchoTime = 0;
 volatile long backEchoTime = 0;
-int tempEchoFront = 0;
-int tempEchoSide = 0;
+volatile int tempEchoFront = 0;
+volatile int tempEchoSide = 0;
 int tempEchoBack = 0;
-int pingNext = frontSonar;
+volatile int pingNext = frontSonar;
 
 // variables used for turning with the gyro
 L3G gyro;
@@ -200,7 +200,7 @@ long temporaryLeftCounter;
 long temporaryRightCounter;
 
 // State variables
-int mainState = 0; 
+volatile int mainState = 0; 
 int mazeState = 0; 
 int seeWallState = 0; 
 int lostWallState = 0; 
@@ -217,7 +217,7 @@ boolean disTravComplete = false;
 boolean scanComplete = false;
 boolean fanSweepComplete = false;
 boolean hitTop = false;
-boolean waiting = false;
+volatile boolean waiting = false;
 boolean firstTimeThrough = true;
 boolean firstTimeThroughTurning = true;
 long tempTimer = 0;
