@@ -65,6 +65,11 @@ float getDis(int sonarToRead){
     case backSonar:{
        return ( (567.5 * ( (float)backEchoTime/1000000)) * 12.0);
     } 
+    default:
+      Serial.println("HIT EXTINGUISH FIRE DEFAULT");
+      lcd.println("ERROR 11");
+      delay(5000);
+      break;
   }
 }
 
@@ -90,6 +95,11 @@ void ping(int sensorToPing){
         pingPin = backPingPin;
         break;
       }
+      default:
+        Serial.println("HIT PING DEFAULT");
+        lcd.println("ERROR");
+        delay(5000);
+        break;
     }
     // Serial.print(pingPin);
   

@@ -62,6 +62,11 @@ void frontSonarISR(){
           pingNext = frontSonar;
           break;
         }
+      default:
+        Serial.println("HIT FRONT SONAR ISR DEFAULT");
+        lcd.println("ERROR 10");
+        delay(5000);
+        break;
       }
     }
     else{
@@ -101,6 +106,11 @@ void sideSonarISR(){
           pingNext = frontSonar;
           break;
         }
+      default:
+        Serial.println("HIT EXTINGUISH FIRE DEFAULT");
+        lcd.println("ERROR");
+        delay(5000);
+        break;
       }
     }
     else{
