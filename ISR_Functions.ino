@@ -39,7 +39,7 @@ void frontSonarISR(){
   }
   else{
     tempEchoFront = micros() - frontPingTime;
-    if(tempEchoFront < 30000){
+    if((tempEchoFront < 30000) && (tempEchoFront >=0)){
       frontEchoTime = tempEchoFront;
       switch(mainState){
       case findingFire:
