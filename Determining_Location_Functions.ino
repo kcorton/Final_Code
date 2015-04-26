@@ -38,7 +38,7 @@ void turnStateMachine(int turnDeg){
     }  
     break;
   default:
-    Serial.println("HIT TURN STATE DEFAULT"):
+    Serial.println("HIT TURN STATE DEFAULT");
     lcd.println("ERROR 04");
     delay(5000);
   }

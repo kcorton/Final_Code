@@ -165,9 +165,12 @@ void driveStraightForwardEnc(void) {
 //drives straight by ensuring both encoders have moved the same distance
 
 void driveStraightBackwardsEnc(void) {
+  if (firstTimeThrough){
   Kw = 0;
   Kv = -Kv;
   baseSpeed = -baseSpeed;
+  firstTimeThrough = false;
+  }
   followWall();
 
 }

@@ -173,6 +173,7 @@ void seenCliff(void) {
     if(disTravComplete) {
       cliffState = SeenCliffTurningToStraight;
       disTravComplete = false;
+      firstTimeThrough = true;
       Kv = -Kv; 
       baseSpeed = -baseSpeed;
     }
@@ -189,7 +190,7 @@ void seenCliff(void) {
     driveStraightForwardEnc();
     break;
   default:
-    Serial.println("HIT SEEN CLIFF DEFAULT"):
+    Serial.println("HIT SEEN CLIFF DEFAULT");
     lcd.println("ERROR 09");
     delay(5000);
   }
@@ -203,6 +204,7 @@ void checkForCliff(void){
 
   if(digitalRead(cliffSensorPin) == HIGH){
     Serial.println("cliff!!!");
+    lostWallState = 0;
     stopAllDrive();
     mazeState = seeingCliff;
     cliffState = 0;

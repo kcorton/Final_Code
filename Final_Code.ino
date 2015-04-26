@@ -425,7 +425,7 @@ void findFire(void) {
       }
     break; 
   default:
-    Serial.println("HIT FIND FIRE DEFAULT"):
+    Serial.println("HIT FIND FIRE DEFAULT");
     lcd.println("ERROR 01");
     delay(5000);
   }
@@ -471,7 +471,7 @@ void extinguishFire(void){
     mainState = returningHome;
     break; 
   default:
-    Serial.println("HIT EXTINGUISH FIRE DEFAULT"):
+    Serial.println("HIT EXTINGUISH FIRE DEFAULT");
     lcd.println("ERROR 02");
     delay(5000);
 
@@ -547,7 +547,7 @@ void returnHome(void) {
     }
     break; 
   default:
-    Serial.println("HIT RETURN HOME DEFAULT"):
+    Serial.println("HIT RETURN HOME DEFAULT");
     lcd.println("ERROR 03");
     delay(5000);  
 
