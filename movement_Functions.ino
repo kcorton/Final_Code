@@ -2,12 +2,16 @@
 // Turn Function
 
 // turns the robot about the turning center a given distance 
-// pos - turns clockwise
-// neg- turns counterclockwise
+// pos - turns counterclockwise
+// neg- turns clockwise
 // once the turn is complete all motors stop and the global variable turnComplete is set to 1
 
 void turn(int turnDeg){
 
+  if (firstTimeThroughTurning){
+    lastTurnTime = millis();
+    firstTimeThroughTurning = false;
+  }
   /* If enough time has passed */
   if(countTime - lastTurnCount >= 1) {
 
@@ -32,9 +36,10 @@ void turn(int turnDeg){
         turnComplete = true;
         accelTime = 0;
         stopAllDrive();
-        lastTurnTime = 0;
+        lastTurnCount = 0;
         totalDegrees = 0;
-        lastTurnTime = millis();
+        firstTimeThroughTurning = true;
+//        lastTurnTime = millis();                      ///////Call this before turn we think
 
         if (mainState == findingFire){
           storeLocation();
@@ -62,7 +67,8 @@ void turn(int turnDeg){
         stopAllDrive();
         lastTurnTime = 0;
         totalDegrees = 0;
-        lastTurnTime = millis();
+        firstTimeThroughTurning = true;
+//        lastTurnTime = millis();
 
         if (mainState == findingFire){
           storeLocation();

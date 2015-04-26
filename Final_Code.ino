@@ -219,6 +219,7 @@ boolean fanSweepComplete = false;
 boolean hitTop = false;
 boolean waiting = false;
 boolean firstTimeThrough = true;
+boolean firstTimeThroughTurning = true;
 long tempTimer = 0;
 
 // Interrupt Variables
@@ -357,7 +358,7 @@ void findFire(void) {
   // rotates the fire sensor looking for a fire
   lookForFire();
   // checks the cliff detector for a cliff
-  if (cliffState != seenCliffBackingUp){
+  if (mainState != seeingCliff){
   checkForCliff();
   }
 

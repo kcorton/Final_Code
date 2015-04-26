@@ -7,34 +7,34 @@ void turnStateMachine(int turnDeg){
   switch (drivingDirection) {
   case xPos:
     if (turnDeg > 0) {
-      drivingDirection = yNeg;
+      drivingDirection = yPos;
     }
     else if (turnDeg < 0) {
-      drivingDirection = yPos;
+      drivingDirection = yNeg;
     }
     break;
   case yPos:
     if (turnDeg > 0) {
-      drivingDirection = xPos;
+      drivingDirection = xNeg;
     }
     else if (turnDeg < 0) {
-      drivingDirection = xNeg;
+      drivingDirection = xPos;
     }  
     break;
   case xNeg:
     if (turnDeg > 0) {
-      drivingDirection = yPos;
+      drivingDirection = yNeg;
     }
     else if (turnDeg < 0) {
-      drivingDirection = yNeg;
+      drivingDirection = yPos;
     } 
     break;
   case yNeg: 
     if (turnDeg > 0) {
-      drivingDirection = xNeg;
+      drivingDirection = xPos;
     }
     else if (turnDeg < 0) {
-      drivingDirection = xPos;
+      drivingDirection = xNeg;
     }  
     break;
   default:
