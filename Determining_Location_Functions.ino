@@ -9,7 +9,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = yNeg;
     }
-    else if (turnDeg < 0) {
+    if (turnDeg < 0) {
       drivingDirection = yPos;
     }
     break;
@@ -17,7 +17,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = xPos;
     }
-    else if (turnDeg < 0) {
+    if (turnDeg < 0) {
       drivingDirection = xNeg;
     }  
     break;
@@ -25,7 +25,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = yPos;
     }
-    else if (turnDeg < 0) {
+    if (turnDeg < 0) {
       drivingDirection = yNeg;
     } 
     break;
@@ -33,12 +33,9 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = xNeg;
     }
-    else if (turnDeg < 0) {
+    if (turnDeg < 0) {
       drivingDirection = xPos;
     }  
-    break;
-  default:
-    Serial.println("HIT TURN STATE MACHINE DEFAULT");  
     break;
   }
 }
