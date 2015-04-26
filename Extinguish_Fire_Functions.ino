@@ -93,7 +93,10 @@ void driveToCandle(void) {
     updateAngleDriveLocation();
     driveToCandleState = scanning;
     break;
-  }  
+  default:
+    Serial.println(" HIT DRIVE TO CANDLE DEFAULT");
+    break;
+  }
 
 }
 
@@ -132,6 +135,9 @@ void activateFan(void) {
       fanSweepComplete = true;
     }
     break;
+    
+  default:
+    Serial.println("HIT ACTIVATE FAN DEFAULT");
   }
 }
 

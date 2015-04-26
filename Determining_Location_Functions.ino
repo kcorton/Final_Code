@@ -37,6 +37,9 @@ void turnStateMachine(int turnDeg){
       drivingDirection = xPos;
     }  
     break;
+  default:
+    Serial.println("HIT TURN STATE MACHINE DEFAULT");  
+    break;
   }
 }
 

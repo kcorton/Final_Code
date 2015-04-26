@@ -83,6 +83,8 @@ void seeWallFront(void) {
   case seeWallTurningState:
     turn(negNinetyDeg);
     break;
+  default:
+    Serial.println("HIT SEE WALL FUNCTION DEFAULT");
   }
 }
 
@@ -141,6 +143,9 @@ void lostWall(void) {
   case lostWallDrivingStraight: 
     driveStraightForwardEnc();
     break;
+    
+  default:
+    Serial.println("HIT LOST WALL DEFAULT");
   }
 
 }
