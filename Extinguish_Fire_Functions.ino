@@ -105,7 +105,7 @@ void driveToCandle(void) {
 void activateFan(void) { 
 
   // run fan between two extremes 
-  digitalWrite(fanMotorPin, HIGH);
+  digitalWrite(fanPin, HIGH);
   armTimePassed = countTime - armInitTime;
   switch(armState){
   case raisingArm:
@@ -128,7 +128,7 @@ void activateFan(void) {
     armMotor.write(93);
     if (analogRead(armPotPin) <=  lowPos){
       armMotor.write(90);
-      digitalWrite(fanMotorPin, LOW);
+      digitalWrite(fanPin, LOW);
       fanSweepComplete = true;
     }
     break;

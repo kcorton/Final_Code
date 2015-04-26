@@ -18,11 +18,28 @@ boolean checkFrontDis(int desDis){
 /*********************************************************************************************/
 // Check Side Distance function 
 
-// if the side distance sensors sees something  a certain distance away the function is true
+// if the side distance sensors sees something less than a certain distance away the function is true
 
-boolean checkSideDis(int desDis){
+boolean checkSideDisLess(int desDis){
 
   if (getDis(sideSonar) <= desDis) { 
+    return true; 
+  }
+
+  else { 
+    return false; 
+  }
+
+}
+
+/*********************************************************************************************/
+// Check Side Distance function 
+
+// if the side distance sensors sees something less than a certain distance away the function is true
+
+boolean checkSideDisGreater(int desDis){
+
+  if (getDis(sideSonar) >= desDis) { 
     return true; 
   }
 
@@ -57,15 +74,15 @@ void ping(int sensorToPing){
   if(!waiting){
     int pingPin;
     switch(sensorToPing){
-      case 1:{    //FRONTSONAR
+      case frontSonar:{    //FRONTSONAR
         pingPin = frontPingPin;
         break;
       }
-      case 2:{    //SIDESONAR
+      case sideSonar:{    //SIDESONAR
         pingPin = sidePingPin;
         break;
       }
-      case 3:{    //BACKSONAR
+      case backSonar:{    //BACKSONAR
         pingPin = backPingPin;
         break;
       }
@@ -79,7 +96,30 @@ void ping(int sensorToPing){
     delayMicroseconds(250);
     digitalWrite(pingPin,LOW); 
    
-    waiting = true; 
+    if(sensorToPing == backSonar){
+      backEchoTime = pulseIn(backEchoPin,HIGH);
+      switch(mainState){
+        case findingFire:{
+          pingNext = frontSonar;
+          break;
+        }
+        case extinguishingFire:{
+          pingNext = frontSonar;
+          break;
+        }
+        case returningHome:{
+          pingNext = sideSonar;
+          break;
+        }
+        case madeItHome:{
+          pingNext = frontSonar;
+          break;
+        }
+      }
+    }
+    else{
+      waiting = true;
+    } 
   }
 }
 

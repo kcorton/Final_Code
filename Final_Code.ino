@@ -1,4 +1,6 @@
 
+
+
 // Final Code Goes Here 
 
 /*********************************************************************************************/
@@ -6,6 +8,8 @@
 
 #include <Servo.h>
 #include <TimerOne.h>
+#include <L3G.h>
+#include <Wire.h>
 
 // Pin Values 
 #define frontPingPin 27
@@ -13,8 +17,7 @@
 #define backPingPin 29
 #define frontEchoPin 18
 #define sideEchoPin 19
-#define backEchoPin 20
-#define fanMotorPin 22
+#define backEchoPin 26
 #define fanPin 22
 #define armMotorPin 4
 #define armPotPin A4
@@ -27,6 +30,8 @@
 #define rightEncoderB 5
 #define rightEncoderA 3
 #define firePin A1
+#define fireServoPin 11
+#define cliffSensorPin A2
 
 // Main State machine States
 #define findingFire 0
@@ -100,13 +105,16 @@
 #define yCol 1
 
 // Pre-defined Values and Distances
-#define candleDist 1
-#define frontWallDist 4
-#define closeWallDist 6
-#define BackFromCliffDist 3
-#define forwardDisToTurnAboutWall 3
+#define candleDist 1 // the distance away from the candle when the robot will stop
+#define frontWallDist 4  // the distance from the front wall when the robot should stop
+#define desiredDist 4  //the desired distance between the robot and the wall
+#define closeWallDist 6  // if a wall is within this value there is a close wall it should follow
+#define BackFromCliffDist 5  // how far the robot will back up after seeing a cliff
+#define forwardDisToTurnAboutWall 3 // how far the robot drives straight once it's lost the wall
 #define ninetyDeg 90
+#define negNinetyDeg -90
 #define inchesPerTick .0032751103
+#define turningSpeed 400
 
 
 // Motor and Servo Declarations
@@ -149,7 +157,6 @@ int nextIndex = 0; //the index currently being saved to in speedStorage
 long lastTime = 0; //holds the time of the last running of calcVelocity()
 
 /* Variables used by followWall() */
-float desiredDist = 4.0;  //the desired distance between the robot and the wall
 float distToWall = 0; //the actual distance between the robot and the wall
 float wallError = 0;  //the difference between the above two
 float Kw = 100;  //propotional multiplier which affects how much the wallError affects the speed
@@ -168,6 +175,16 @@ int tempEchoFront = 0;
 int tempEchoSide = 0;
 int tempEchoBack = 0;
 int pingNext = frontSonar;
+
+// variables used for turning with the gyro
+L3G gyro;
+int currGyroReading;
+int mdps = 0;
+float totalDegrees = 0;
+long lastTurnCount = 0;
+long lastTurnTime = 0;  
+long currTurnTime = 0;
+int offset = 0;
 
 // Variables to keep track of where the robot is and has been
 int xCoord = 0; 
@@ -214,6 +231,9 @@ void setup(){
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
 
+  // setup Cliff sensor
+  pinMode(cliffSensorPin, INPUT_PULLUP);
+
   // setup Fan Motor
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
@@ -223,7 +243,7 @@ void setup(){
   digitalWrite(fanPin,LOW);
 
   // setup Flame Servo
-  flameServo.attach(9, 544, 2400);
+  flameServo.attach(fireServoPin, 544, 2400);
 
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
@@ -243,6 +263,21 @@ void setup(){
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
   
+  // I2C initialization
+  Wire.begin();
+  
+  // Gyro Initializations
+  calcGyroOffset();
+  
+  if (!gyro.init())
+  {
+    Serial.println("Failed to autodetect gyro type!");
+    while (1);
+  }
+  gyro.enableDefault();
+  gyro.writeReg(L3G::CTRL_REG4, 0x20); // 2000 dps full scale
+  gyro.writeReg(L3G::CTRL_REG1, 0x0F); // normal power mode, all axes enabled, 100 Hz  
+  
   //Encoder interrupt initialization
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);
@@ -250,7 +285,6 @@ void setup(){
   //Sonar interrupt initialization
   attachInterrupt(5,frontSonarISR,CHANGE); 
   attachInterrupt(4,sideSonarISR,CHANGE);  
-  attachInterrupt(3,backSonarISR,CHANGE);  
   
   //Ensures all Soonar pin pins are initialized to low
   digitalWrite(frontPingPin,LOW);
@@ -261,6 +295,26 @@ void setup(){
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);  
 
+}
+
+void calcGyroOffset(void) {
+  
+  int i;
+  long totalGyroReading = 0;
+  
+  for(i = 0; i < 1000; i++) {
+    
+    gyro.read();
+    totalGyroReading += (int)gyro.g.z;
+    
+    delay(10);
+    
+  }
+  
+  Serial.println("OFFSET");
+  offset = (float)totalGyroReading/1000;
+  Serial.println(offset);
+  
 }
 
 void loop() {
@@ -293,6 +347,7 @@ void findFire(void) {
 
   // looks for the fire 
   lookForFire();
+  checkForCliff();
 
 
   switch (mazeState) {
@@ -303,8 +358,9 @@ void findFire(void) {
       mazeState = seeingWallFront;
     }
 
-    // if the sonar sees a jump in the distance and is no longer next to a wall 
+    if(checkSideDisGreater(closeWallDist)){ 
     mazeState = loosingWall;
+    }
 
     break;
   case seeingWallFront:
@@ -321,7 +377,7 @@ void findFire(void) {
     lostWall();
 
     //once sonar can see a wall again
-    if(checkSideDis(closeWallDist)){
+    if(checkSideDisLess(closeWallDist)){
       mazeState = followingWall;
       lostWallState = 0;
     }
@@ -330,7 +386,7 @@ void findFire(void) {
     seenCliff();
 
     //once sonar can see a wall again 
-    if(checkSideDis(closeWallDist)){
+    if(checkSideDisLess(closeWallDist)){
       mazeState = followingWall;
       cliffState = 0;
     }

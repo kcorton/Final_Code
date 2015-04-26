@@ -7,27 +7,85 @@
 // once the turn is complete all motors stop and the global variable turnComplete is set to 1
 
 void turn(int turnDeg){
-  
 
-  // if turn has been completed 
-  if (mainState == findingFire){
-    stopAllDrive();
-    storeLocation();
-    turnStateMachine(turnDeg);  
+  /* If enough time has passed */
+  if(countTime - lastTurnCount >= 1) {
+
+    currTurnTime = millis() - lastTurnTime;
+
+    gyro.read();
+    currGyroReading = (int)gyro.g.z;
+    mdps = (currGyroReading - offset);
+    mdps = (float)mdps * 0.07;
+
+    totalDegrees += (float)mdps * ((float)currTurnTime/2000) * 2.1;
+
+    if(turnDeg >= 0) {
+
+      /* Write Changes to the motors */
+      leftSpeed = -turningSpeed;
+      rightSpeed = turningSpeed;
+      updateMotors();
+
+      // if the turn has been completed
+      if(totalDegrees >= turnDeg) {
+        turnComplete = true;
+        stopAllDrive();
+        lastTurnTime = 0;
+        totalDegrees = 0;
+        lastTurnTime = millis();
+        
+        if (mainState == findingFire){
+          storeLocation();
+          turnStateMachine(turnDeg);  
+        }
+        else if (mainState == extinguishingFire) {
+          // do nothing for now
+        }
+        else if (mainState = extinguishingFire) { 
+          // do nothing for now
+        }
+      }
+    }
+
+    else if(turnDeg < 0) {
+
+      /* Write Changes to the motors */
+      leftSpeed = turningSpeed;
+      rightSpeed = -turningSpeed;
+      updateMotors();
+
+      if(totalDegrees <= turnDeg) {
+        turnComplete = true;
+        stopAllDrive();
+
+        if (mainState == findingFire){
+          storeLocation();
+          turnStateMachine(turnDeg);  
+        }
+        else if (mainState == extinguishingFire) {
+          // do nothing for now
+        }
+        else if (mainState = extinguishingFire) { 
+          // do nothing for now
+        }
+      }
+    }
+
+    Serial.println(totalDegrees);
+
+    lastTurnTime = millis();
+    lastTurnCount = countTime;
+
   }
-  else if (mainState == extinguishingFire) {
-    stopAllDrive();
-  }
-  else if (mainState = extinguishingFire) { 
-    stopAllDrive();
-  }
+
 }
 
 /*********************************************************************************************/
 // Dis Traveled Complete Function
 // returns true when the correct distance has been traveled
 
-boolean disTraveledComplete(int desiredDis) {
+boolean disTraveledComplete(int desDis) {
 
 }
 
@@ -38,7 +96,7 @@ boolean disTraveledComplete(int desiredDis) {
 // once this distance is reached it changes the gloabal variable disTravComplete to 1
 
 void driveStraightDesDis(int desDis) {
-  
+
   driveStraightForwardEnc();
 
   if(disTraveledComplete(desDis)){ 
@@ -81,19 +139,19 @@ void followWall(void) {
   wallError = desiredDist - distToWall;
   //calculate velocity error
   velocityError = getRightVeloc() - getLeftVeloc();
-//  Serial.print(leftSpeed);
-//  Serial.print("  ");
-//  Serial.print(rightSpeed);
-//  Serial.print("  ");
-//  Serial.print(getLeftVeloc());
-//  Serial.print("  ");
-//  Serial.println(getRightVeloc());
+  //  Serial.print(leftSpeed);
+  //  Serial.print("  ");
+  //  Serial.print(rightSpeed);
+  //  Serial.print("  ");
+  //  Serial.print(getLeftVeloc());
+  //  Serial.print("  ");
+  //  Serial.println(getRightVeloc());
   //calculate speed based on the errors (proportional control)
   leftSpeed = accelTime * (baseSpeed + (Kw * wallError) + (Kv * velocityError));
   rightSpeed = accelTime * (baseSpeed - (Kw * wallError) - (Kv * velocityError));
   //set the motor speeds
   updateMotors();
-  
+
 }
 
 //==========================================================================
@@ -109,19 +167,19 @@ void calcVelocity(){
     // while calculations are being made
     tempLeftTicks = leftCounter;
     tempRightTicks = rightCounter;
-    
+
     //calculate the change in ticks since the last time this function ran
     leftChange = tempLeftTicks - lastLeftTicks;
     rightChange = tempRightTicks - lastRightTicks;
-    
+
     //calculate the velocity (assumes this function runs every .1 seconds
     leftVelocity = leftChange/.1;
     rightVelocity = rightChange/.1;
-    
+
     //set the new initial ticks in preparation for the next run
     lastLeftTicks = tempLeftTicks;
     lastRightTicks = tempRightTicks; 
-    
+
     //increment the storing index
     if(nextIndex >= 4){
       nextIndex = 0;  
@@ -129,7 +187,7 @@ void calcVelocity(){
     else{
       nextIndex++;
     }
-    
+
     //store the left and right velocities in a 2x5 array
     speedStorage[0][nextIndex] = leftVelocity;
     speedStorage[1][nextIndex] = rightVelocity; 
@@ -194,5 +252,7 @@ int mapSpeed(int inSpeed){
   //convert to an analogWrite value (0 to 255)
   return ( (float)inSpeed/9.8 );
 }
+
+
 
 

@@ -38,13 +38,35 @@ void frontSonarISR(){
     tempEchoFront = micros() - frontPingTime;
     if(tempEchoFront < 30000){
       frontEchoTime = tempEchoFront;
-      pingNext = sideSonar;
+      switch(mainState){
+      case findingFire:
+        {
+          pingNext = sideSonar;
+          break;
+        }
+      case extinguishingFire:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      case returningHome:
+        {
+          pingNext = sideSonar;
+          break;
+        }
+      case madeItHome:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      }
     }
     else{
       pingNext = frontSonar; 
     }
     waiting = false; 
   }
+
 }
 //========================================================
 void sideSonarISR(){
@@ -55,7 +77,28 @@ void sideSonarISR(){
     tempEchoSide = micros() - sidePingTime;
     if(tempEchoSide < 30000){
       sideEchoTime = tempEchoSide;
-      pingNext = frontSonar;
+      switch(mainState){
+      case findingFire:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      case extinguishingFire:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      case returningHome:
+        {
+          pingNext = backSonar;
+          break;
+        }
+      case madeItHome:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      }
     }
     else{
       pingNext = sideSonar; 
@@ -63,20 +106,6 @@ void sideSonarISR(){
     waiting = false;
   }
 }
-//========================================================
-void backSonarISR(){
-  if(digitalRead(backEchoPin) == HIGH){
-    backPingTime = micros();
-  }
-  else{
-    tempEchoBack = micros() - backPingTime;
-    if(tempEchoBack < 30000){
-      backEchoTime = tempEchoBack;
-      pingNext = frontSonar;
-    }
-    else{
-      pingNext = frontSonar; 
-    }
-    waiting = false;
-  }
-}
+
+
+

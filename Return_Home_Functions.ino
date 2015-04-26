@@ -24,7 +24,7 @@ void getCoordinates(void) {
 
 void driveToNextCoor(void) {
 
-  if(checkSideDis(closeWallDist)){
+  if(checkSideDisLess(closeWallDist)){
   // if the sonar sees a close wall
   followWall();
   }

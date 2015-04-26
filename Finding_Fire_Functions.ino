@@ -79,7 +79,7 @@ void seeWallFront(void) {
     seeWallState = seeWallTurningState;
     break;
   case seeWallTurningState:
-    turn(ninetyDeg);
+    turn(negNinetyDeg);
     break;
   }
 }
@@ -162,6 +162,19 @@ void seenCliff(void) {
   case SeenCliffBackOnCourse:
     driveStraightForwardEnc();
   }
+}
+
+
+/*********************************************************************************************/
+// checkForCliff
+// changes the state
+void checkForCliff(void){
+  
+  if(cliffSensorPin == 0){
+  stopAllDrive();
+  mazeState = seeingCliff;
+  }
+  
 }
 
 
