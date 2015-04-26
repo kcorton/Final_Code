@@ -18,10 +18,12 @@ void storeLocation(void) {
 
 void lookForFire(void) {
 
+  
   int flameVal;
 
   if(countTime - lastFireTimeCount >= 15) {
 
+     Serial.println("lookForFire");
     /* Read current fire sensor value */
     flameVal = analogRead(firePin);
     Serial.println(flameVal);
@@ -171,6 +173,7 @@ void seenCliff(void) {
 void checkForCliff(void){
   
   if(cliffSensorPin == 0){
+    Serial.println("cliff!!!");
   stopAllDrive();
   mazeState = seeingCliff;
   }

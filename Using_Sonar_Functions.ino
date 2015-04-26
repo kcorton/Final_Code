@@ -71,7 +71,10 @@ float getDis(int sonarToRead){
 // Pings all the SOnar 
 
 void ping(int sensorToPing){
+  
+  
   if(!waiting){
+   // Serial.println("ping");
     int pingPin;
     switch(sensorToPing){
       case frontSonar:{    //FRONTSONAR

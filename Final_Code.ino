@@ -139,7 +139,7 @@ int lastFlameVal = 2000;
 int disToNextCoor = 0;
 
 //Varables for Driveing Functions
-int baseSpeed = 980; //encoder ticks per second
+int baseSpeed = 700; //encoder ticks per second
 int leftSpeed = baseSpeed;
 int rightSpeed = baseSpeed;
 
@@ -191,7 +191,8 @@ int xCoord = 0;
 int yCoord = 0; 
 int nextXCoord = 0; 
 int nextYCoord = 0; 
-int locationsArray[15][2] = {0};
+int locationsArray[15][2] = {
+  0};
 int currentArrayRow = 0;
 
 // State variables
@@ -222,6 +223,7 @@ volatile long leftCounter = 0;
 void setup(){
 
   Serial.begin(9600);
+  Serial.println("beginSetup");
 
   // need some way to determine which direction the robot is initially facing 
 
@@ -237,7 +239,7 @@ void setup(){
   // setup Fan Motor
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
-  
+
   // setup Fan 
   pinMode(fanPin, OUTPUT);
   digitalWrite(fanPin,LOW);
@@ -248,7 +250,7 @@ void setup(){
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
   Timer1.attachInterrupt(timerISR);
-  
+
   //Sonar pin declarations
   pinMode(frontPingPin,OUTPUT);
   pinMode(frontEchoPin,INPUT);
@@ -256,19 +258,20 @@ void setup(){
   pinMode(sideEchoPin,INPUT);
   pinMode(backPingPin,OUTPUT);
   pinMode(backEchoPin,INPUT);
-  
+
   //Motor pin declarations
   pinMode(leftMotorF, OUTPUT);
   pinMode(leftMotorB, OUTPUT);
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
-  
+
   // I2C initialization
   Wire.begin();
-  
-  // Gyro Initializations
-  calcGyroOffset();
-  
+  Serial.println("gyroStart");
+
+  // Gyro Initializations 
+
+
   if (!gyro.init())
   {
     Serial.println("Failed to autodetect gyro type!");
@@ -277,15 +280,19 @@ void setup(){
   gyro.enableDefault();
   gyro.writeReg(L3G::CTRL_REG4, 0x20); // 2000 dps full scale
   gyro.writeReg(L3G::CTRL_REG1, 0x0F); // normal power mode, all axes enabled, 100 Hz  
-  
+
+  calcGyroOffset();
+
+  Serial.println("gyroFinish");
+
   //Encoder interrupt initialization
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);
-  
+
   //Sonar interrupt initialization
   attachInterrupt(5,frontSonarISR,CHANGE); 
   attachInterrupt(4,sideSonarISR,CHANGE);  
-  
+
   //Ensures all Soonar pin pins are initialized to low
   digitalWrite(frontPingPin,LOW);
   digitalWrite(sidePingPin,LOW);
@@ -297,30 +304,14 @@ void setup(){
 
 }
 
-void calcGyroOffset(void) {
-  
-  int i;
-  long totalGyroReading = 0;
-  
-  for(i = 0; i < 1000; i++) {
-    
-    gyro.read();
-    totalGyroReading += (int)gyro.g.z;
-    
-    delay(10);
-    
-  }
-  
-  Serial.println("OFFSET");
-  offset = (float)totalGyroReading/1000;
-  Serial.println(offset);
-  
-}
+
 
 void loop() {
-  
+
+  //Serial.println("beginLoop");
+
   //Serial.println(millis());
-  
+
   ping(pingNext);    ////////Change which sonars are pinged based on what the main state in
 
   switch (mainState) {
@@ -352,14 +343,17 @@ void findFire(void) {
 
   switch (mazeState) {
   case followingWall:
+    Serial.println("followWall");
     followWall();
 
     if(checkFrontDis(frontWallDist)){
+      Serial.println("seeingWallFront");
       mazeState = seeingWallFront;
     }
 
     if(checkSideDisGreater(closeWallDist)){ 
-    mazeState = loosingWall;
+      Serial.println("loosingWall");
+      mazeState = loosingWall;
     }
 
     break;
@@ -370,6 +364,12 @@ void findFire(void) {
       turnComplete = false;
       mazeState = followingWall;
       seeWallState = 0;
+      for( int i = 0; i < 5; i++){
+        for (int k = 0; k < 2; k++){
+         
+          speedStorage[k][i] = 0;
+        }
+      }
     }
 
     break;
@@ -513,6 +513,25 @@ void returnHome(void) {
   }
 }
 
+void calcGyroOffset(void) {
+
+  int i;
+  long totalGyroReading = 0;
+
+  for(i = 0; i < 1000; i++) {
+
+    gyro.read();
+    totalGyroReading += (int)gyro.g.z;
+
+    delay(5);
+
+  }
+
+  Serial.println("OFFSET");
+  offset = (float)totalGyroReading/1000;
+  Serial.println(offset);
+
+}
 
 
 

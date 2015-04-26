@@ -27,6 +27,9 @@ void rightTick(){
 
 void timerISR(){
   countTime++;
+  if (accelTime < 1){
+    accelTime += .05;                             
+  }
 }
 
 //========================================================
