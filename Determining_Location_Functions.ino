@@ -9,7 +9,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = yNeg;
     }
-    if (turnDeg < 0) {
+    else if (turnDeg < 0) {
       drivingDirection = yPos;
     }
     break;
@@ -17,7 +17,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = xPos;
     }
-    if (turnDeg < 0) {
+    else if (turnDeg < 0) {
       drivingDirection = xNeg;
     }  
     break;
@@ -25,7 +25,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = yPos;
     }
-    if (turnDeg < 0) {
+    else if (turnDeg < 0) {
       drivingDirection = yNeg;
     } 
     break;
@@ -33,7 +33,7 @@ void turnStateMachine(int turnDeg){
     if (turnDeg > 0) {
       drivingDirection = xNeg;
     }
-    if (turnDeg < 0) {
+    else if (turnDeg < 0) {
       drivingDirection = xPos;
     }  
     break;

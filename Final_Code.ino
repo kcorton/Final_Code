@@ -427,7 +427,8 @@ void extinguishFire(void){
 
     // else 
 
-    extState = flameIsOut ; 
+    extState = flameIsOut; 
+    break;
   case flameIsOut: 
     reportFlame(); 
     mainState = returningHome;
