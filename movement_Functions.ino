@@ -35,7 +35,7 @@ void turn(int turnDeg){
         lastTurnTime = 0;
         totalDegrees = 0;
         lastTurnTime = millis();
-        
+
         if (mainState == findingFire){
           storeLocation();
           turnStateMachine(turnDeg);  
@@ -91,6 +91,19 @@ void turn(int turnDeg){
 // returns true when the correct distance has been traveled
 
 boolean disTraveledComplete(int desDis) {
+  if(firstTimeThrough){
+    temporaryLeftCounter = leftCounter; 
+    temporaryRightCounter = rightCounter;
+    firstTimeThrough = false;
+  }
+  if ( (leftCounter - temporaryLeftCounter) >= desDis){
+    if ((rightCounter - temporaryRightCounter) >= desDis){
+      return true; 
+    }
+  }
+  else {
+    return false;
+  }
 
 }
 
@@ -102,12 +115,24 @@ boolean disTraveledComplete(int desDis) {
 
 void driveStraightDesDis(int desDis) {
 
-  driveStraightForwardEnc();
+  if(desDis > 0){
 
-  if(disTraveledComplete(desDis)){ 
-    stopAllDrive();
-    disTravComplete = true;
-  } 
+    driveStraightForwardEnc();
+
+    if(disTraveledComplete(desDis)){ 
+      stopAllDrive();
+      disTravComplete = true;
+    } 
+  }
+  else if(desDis < 0){
+    driveStraightBackwardsEnc();
+
+    if(disTraveledComplete(desDis)){ 
+      stopAllDrive();
+      disTravComplete = true;
+    }   
+  }
+
 }
 
 /*********************************************************************************************/
@@ -130,6 +155,19 @@ void stopAllDrive(void) {
 
 void driveStraightForwardEnc(void) {
   Kw = 0;
+  followWall();
+
+}
+
+/*********************************************************************************************/
+// Drive Straight Forward Encoders function
+
+//drives straight by ensuring both encoders have moved the same distance
+
+void driveStraightBackwardsEnc(void) {
+  Kw = 0;
+  Kv = -Kv;
+  baseSpeed = -baseSpeed;
   followWall();
 
 }
@@ -252,6 +290,8 @@ int mapSpeed(int inSpeed){
   //convert to an analogWrite value (0 to 255)
   return ( (float)inSpeed/9.8 );
 }
+
+
 
 
 

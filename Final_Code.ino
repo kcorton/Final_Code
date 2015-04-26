@@ -1,6 +1,3 @@
-
-
-
 // Final Code Goes Here 
 
 /*********************************************************************************************/
@@ -10,6 +7,7 @@
 #include <TimerOne.h>
 #include <L3G.h>
 #include <Wire.h>
+#include <LiquidCrystal.h>
 
 // Pin Values 
 #define frontPingPin 27
@@ -46,21 +44,22 @@
 #define seeingCliff 3
 
 // See Wall State Machine States
-# define seeWallStoppingDrive 0
-# define seeWallTurningState 1
+#define seeWallStoppingDrive 0
+#define seeWallTurningState 1
 
 // Lost Wall State Machine States
-# define lostWallKeepDrivingStraight 0
-# define lostWallTurning 1
-# define lostWallKeepDrivingStraight2 2
-# define lostWallTurning2 3
-# define lostWallDrivingStraight 4
+#define lostWallStopping 0
+#define lostWallKeepDrivingStraight 1
+#define lostWallTurning 2
+#define lostWallKeepDrivingStraight2 3
+#define lostWallTurning2 4
+#define lostWallDrivingStraight 5
 
 // Seen Cliff State Machine States
-# define seenCliffStoppingDrive 0
-# define seenCliffBackingUp 1
-# define SeenCliffTurningToStraight 2
-# define SeenCliffBackOnCourse 3
+#define seenCliffStoppingDrive 0
+#define seenCliffBackingUp 1
+#define SeenCliffTurningToStraight 2
+#define SeenCliffBackOnCourse 3
 
 //Extinguish Fire State Machine States
 #define drivingToCandle 0
@@ -109,13 +108,16 @@
 #define frontWallDist 4  // the distance from the front wall when the robot should stop
 #define desiredDist 4  //the desired distance between the robot and the wall
 #define closeWallDist 6  // if a wall is within this value there is a close wall it should follow
-#define BackFromCliffDist 5  // how far the robot will back up after seeing a cliff
-#define forwardDisToTurnAboutWall 3 // how far the robot drives straight once it's lost the wall
+#define negBackFromCliffDist -3086  //(5 inches) how far the robot will back up after seeing a cliff in encoder t
+#define forwardDisToTurnAboutWall 1234  //(2 inches) how far the robot drives straight once it's lost the wall in encoder ticks
 #define ninetyDeg 90
 #define negNinetyDeg -90
-#define inchesPerTick .0032751103
+#define inchesPerTick .0016198837 
 #define turningSpeed 400
+#define wallProportionalVal 100
 
+//LCD setup
+LiquidCrystal lcd(13, 12, 17, 16, 15, 14);
 
 // Motor and Servo Declarations
 Servo armMotor;
@@ -140,7 +142,6 @@ int disToNextCoor = 0;
 
 //Varables for Driveing Functions
 int baseSpeed = 700; //encoder ticks per second
-int wallProportionalVal = 100;
 int leftSpeed = baseSpeed;
 int rightSpeed = baseSpeed;
 
@@ -188,13 +189,15 @@ long currTurnTime = 0;
 int offset = 0;
 
 // Variables to keep track of where the robot is and has been
-int xCoord = 0; 
-int yCoord = 0; 
+float xCoord = 0; 
+float yCoord = 0; 
 int nextXCoord = 0; 
 int nextYCoord = 0; 
 int locationsArray[15][2] = {
   0};
 int currentArrayRow = 0;
+long temporaryLeftCounter; 
+long temporaryRightCounter;
 
 // State variables
 int mainState = 0; 
@@ -205,7 +208,7 @@ int cliffState = 0;
 int extState = 0; 
 int rtnState = 0; 
 int armState = 0; 
-int drivingDirection = 0; 
+int drivingDirection = xPos; 
 int driveToCandleState = 0;
 
 // boolean variables used in determining when to move to the next state
@@ -215,6 +218,8 @@ boolean scanComplete = false;
 boolean fanSweepComplete = false;
 boolean hitTop = false;
 boolean waiting = false;
+boolean firstTimeThrough = true;
+long tempTimer = 0;
 
 // Interrupt Variables
 volatile long countTime = 0;
@@ -222,6 +227,10 @@ volatile long rightCounter = 0;
 volatile long leftCounter = 0;
 
 void setup(){
+
+  // setup Fan 
+  pinMode(fanPin, OUTPUT);
+  digitalWrite(fanPin,LOW);
 
   Serial.begin(9600);
   Serial.println("beginSetup");
@@ -233,17 +242,17 @@ void setup(){
   pinMode(leftMotorB, OUTPUT);
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
+  
+  // LCD setup
+  lcd.begin(16, 2);
 
   // setup Cliff sensor
-  pinMode(cliffSensorPin, INPUT_PULLUP);
+  pinMode(cliffSensorPin, INPUT);
 
   // setup Fan Motor
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
 
-  // setup Fan 
-  pinMode(fanPin, OUTPUT);
-  digitalWrite(fanPin,LOW);
 
   // setup Flame Servo
   flameServo.attach(fireServoPin, 544, 2400);
@@ -312,8 +321,9 @@ void loop() {
   //Serial.println("beginLoop");
 
   //Serial.println(millis());
-
-  ping(pingNext);    ////////Change which sonars are pinged based on what the main state in
+  
+  printPosition();
+  ping(pingNext); // continually pings the sonars being used to update their values
 
   switch (mainState) {
   case findingFire: // navigating the maze looking for the fire
@@ -337,13 +347,18 @@ void loop() {
 
 void findFire(void) {
 
-  // looks for the fire 
+  Serial.println(frontEchoTime);
+
+  // rotates the fire sensor looking for a fire
   lookForFire();
+  // checks the cliff detector for a cliff
+  if (cliffState != seenCliffBackingUp){
   checkForCliff();
+  }
 
 
   switch (mazeState) {
-  case followingWall:
+  case followingWall:  //
     Serial.println("followWall");
     followWall();
 
@@ -355,10 +370,12 @@ void findFire(void) {
     if(checkSideDisGreater(closeWallDist)){ 
       Serial.println("loosingWall");
       mazeState = loosingWall;
+      tempTimer = countTime;
     }
 
     break;
   case seeingWallFront:
+    Serial.println("turningBCFront");
     seeWallFront();
 
     if(turnComplete){
@@ -369,17 +386,25 @@ void findFire(void) {
 
     break;
   case loosingWall:
+    Serial.println("lostWall");
     lostWall();
 
-    //once sonar can see a wall again
-    if(checkSideDisLess(closeWallDist)){
-      
-      mazeState = followingWall;
-      Kw = wallProportionalVal; 
-      lostWallState = 0;
-    }
+      //once sonar can see a wall again
+      if(checkSideDisLess(closeWallDist)){
+
+        mazeState = followingWall;
+        Kw = wallProportionalVal; 
+        lostWallState = 0;
+      }
+      if(checkFrontDis(frontWallDist)){
+
+        mazeState = seeingWallFront;
+        Kw = wallProportionalVal; 
+        lostWallState = 0;
+      }
+
     break;
-  case seeingCliff: // this state will be entered by an interrupt triggered by our line tracker **** KAREN THIS INTERRUPT NEEDS TO STOP ROBOT AND SET CLIFFSTATE = 0
+  case seeingCliff: 
     seenCliff();
 
     //once sonar can see a wall again 
@@ -387,6 +412,12 @@ void findFire(void) {
       mazeState = followingWall;
       cliffState = 0;
     }
+    if(checkFrontDis(frontWallDist)){
+
+        mazeState = seeingWallFront;
+        Kw = wallProportionalVal; 
+        lostWallState = 0;
+      }
 
     break; 
 
@@ -525,11 +556,12 @@ void calcGyroOffset(void) {
 
   }
 
-  Serial.println("OFFSET");
+  //Serial.println("OFFSET");
   offset = (float)totalGyroReading/1000;
-  Serial.println(offset);
+  //Serial.println(offset);
 
 }
+
 
 
 

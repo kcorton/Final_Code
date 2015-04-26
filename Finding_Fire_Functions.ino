@@ -6,7 +6,7 @@ void storeLocation(void) {
   currentArrayRow++; 
   locationsArray[currentArrayRow][xCol] = xCoord;
   locationsArray[currentArrayRow][yCol] = yCoord;
-  
+
 }
 
 /*********************************************************************************************/
@@ -18,12 +18,12 @@ void storeLocation(void) {
 
 void lookForFire(void) {
 
-  
+
   int flameVal;
 
   if(countTime - lastFireTimeCount >= 2) {
 
-     Serial.println("lookForFire");
+    Serial.println("lookForFire");
     /* Read current fire sensor value */
     flameVal = analogRead(firePin);
     Serial.println(flameVal);
@@ -94,18 +94,27 @@ void seeWallFront(void) {
 void lostWall(void) {
 
   switch (lostWallState) {
+  case lostWallStopping:
+    stopAllDrive(); 
+    if ((countTime - tempTimer) >= 10){
+      lostWallState = lostWallKeepDrivingStraight;
+      accelTime = 0;
+    }
+    break;
   case lostWallKeepDrivingStraight: 
     driveStraightDesDis(forwardDisToTurnAboutWall);
     if(disTravComplete) {
+      firstTimeThrough = true;
       lostWallState = lostWallTurning;
       disTravComplete = false;
     }
     break;
   case lostWallTurning: 
     updateLocation();
-    turn(-ninetyDeg);
+    turn(ninetyDeg);
     if(turnComplete){
       lostWallState = lostWallKeepDrivingStraight2;
+      accelTime = 0;
       turnComplete = false;
     }
     break; 
@@ -113,6 +122,7 @@ void lostWall(void) {
   case lostWallKeepDrivingStraight2: 
     driveStraightDesDis(forwardDisToTurnAboutWall);
     if(disTravComplete) {
+      firstTimeThrough = true;
       lostWallState = lostWallTurning2;
       disTravComplete = false;
     }
@@ -120,10 +130,11 @@ void lostWall(void) {
 
   case lostWallTurning2: 
     updateLocation();
-    turn(-ninetyDeg);
+    turn(ninetyDeg);
     if(turnComplete){
       lostWallState = lostWallDrivingStraight;
       turnComplete = false;
+      accelTime = 0;
     }
     break; 
 
@@ -147,10 +158,12 @@ void seenCliff(void) {
     cliffState = seenCliffBackingUp; 
     break;
   case seenCliffBackingUp:
-    driveStraightDesDis(-BackFromCliffDist);
+    driveStraightDesDis(negBackFromCliffDist);
     if(disTravComplete) {
       cliffState = SeenCliffTurningToStraight;
       disTravComplete = false;
+      Kv = -Kv; 
+      baseSpeed = -baseSpeed;
     }
     break;
   case SeenCliffTurningToStraight:
@@ -171,13 +184,15 @@ void seenCliff(void) {
 // checkForCliff
 // changes the state
 void checkForCliff(void){
-  
-  if(cliffSensorPin == 0){
+
+  if(digitalRead(cliffSensorPin) == HIGH){
     Serial.println("cliff!!!");
-  stopAllDrive();
-  mazeState = seeingCliff;
+    stopAllDrive();
+    mazeState = seeingCliff;
+    cliffState = 0;
   }
-  
+
 }
+
 
 
