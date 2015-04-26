@@ -51,7 +51,7 @@ void setup() {
  
  
   
-//  initializeMotors();
+  initializeMotors();
   
   calcGyroOffset();
   
@@ -69,14 +69,14 @@ void TimerISR(void) {
 
 void loop() {
   
-  turn(-30);
+  turn(-90);
   if(turnComplete) {
-    lastTurnTime = 0;
+    lastTurnCount = 0;
     totalDegrees = 0;
     turnComplete = false;
-    Serial.println("DONE");
-    lastTurnTime = millis();
+    Serial.println("DONE");    
     delay(5000);
+    lastTurnTime = millis();
   }
 
 }
@@ -115,40 +115,40 @@ void turn(int turnDeg) {
     mdps = (currGyroReading - offset);
     mdps = (float)mdps * 0.07;
     
-    totalDegrees += (float)mdps * ((float)currTurnTime/2000) * 2.1;
+    totalDegrees += (float)mdps * ((float)currTurnTime/2000) * 2.08;
   
     if(turnDeg >= 0) {
       
-//      /* Write Changes to the motors */
-//      leftSpeed = -turningSpeed;
-//      rightSpeed = turningSpeed;
-//      updateMotors();
+      /* Write Changes to the motors */
+      leftSpeed = -turningSpeed;
+      rightSpeed = turningSpeed;
+      updateMotors();
       
       if(totalDegrees >= turnDeg) {
         turnComplete = true;
         
-//        /* Stop the motors */
-//        leftSpeed = 0;
-//        rightSpeed = 0;
-//        updateMotors();
+        /* Stop the motors */
+        leftSpeed = 0;
+        rightSpeed = 0;
+        updateMotors();
         
       }
     }
     
     else if(turnDeg < 0) {
       
-//      /* Write Changes to the motors */
-//      leftSpeed = turningSpeed;
-//      rightSpeed = -turningSpeed;
-//      updateMotors();
+      /* Write Changes to the motors */
+      leftSpeed = turningSpeed;
+      rightSpeed = -turningSpeed;
+      updateMotors();
       
       if(totalDegrees <= turnDeg) {
         turnComplete = true;
         
-//        /* Stop the motors */
-//        leftSpeed = 0;
-//        rightSpeed = 0;
-//        updateMotors();
+        /* Stop the motors */
+        leftSpeed = 0;
+        rightSpeed = 0;
+        updateMotors();
       }
     }
     
