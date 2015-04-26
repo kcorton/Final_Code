@@ -18,7 +18,7 @@ int lastFlameVal = 2000;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  flameServo.attach(9, 544, 2400);
+  flameServo.attach(11, 544, 2400);
   
   Timer1.initialize(10000); // set a timer of length 100000 microseconds (or 0.1 sec - or 10Hz => the led will blink 5 times, 5 cycles of on-and-off, per second)
   Timer1.attachInterrupt( timerIsr ); // attach the service routine here
