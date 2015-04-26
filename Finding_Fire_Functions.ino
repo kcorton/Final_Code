@@ -21,7 +21,7 @@ void lookForFire(void) {
   
   int flameVal;
 
-  if(countTime - lastFireTimeCount >= 15) {
+  if(countTime - lastFireTimeCount >= 2) {
 
      Serial.println("lookForFire");
     /* Read current fire sensor value */

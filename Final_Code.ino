@@ -140,6 +140,7 @@ int disToNextCoor = 0;
 
 //Varables for Driveing Functions
 int baseSpeed = 700; //encoder ticks per second
+int wallProportionalVal = 100;
 int leftSpeed = baseSpeed;
 int rightSpeed = baseSpeed;
 
@@ -159,7 +160,7 @@ long lastTime = 0; //holds the time of the last running of calcVelocity()
 /* Variables used by followWall() */
 float distToWall = 0; //the actual distance between the robot and the wall
 float wallError = 0;  //the difference between the above two
-float Kw = 100;  //propotional multiplier which affects how much the wallError affects the speed
+float Kw = wallProportionalVal;  //propotional multiplier which affects how much the wallError affects the speed
 float velocityError = 0; //the difference between the speeds of the wheels
 float Kv = 0.5;  //propotional multiplier which affects how much the velocityError affects the speed
 volatile float accelTime;  //used as a multiplier to slow the robot's acceleration
@@ -363,13 +364,7 @@ void findFire(void) {
     if(turnComplete){
       turnComplete = false;
       mazeState = followingWall;
-      seeWallState = 0;
-      for( int i = 0; i < 5; i++){
-        for (int k = 0; k < 2; k++){
-         
-          speedStorage[k][i] = 0;
-        }
-      }
+      seeWallState = seeWallStoppingDrive;
     }
 
     break;
@@ -378,7 +373,9 @@ void findFire(void) {
 
     //once sonar can see a wall again
     if(checkSideDisLess(closeWallDist)){
+      
       mazeState = followingWall;
+      Kw = wallProportionalVal; 
       lostWallState = 0;
     }
     break;

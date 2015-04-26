@@ -30,6 +30,7 @@ void turn(int turnDeg){
       // if the turn has been completed
       if(totalDegrees >= turnDeg) {
         turnComplete = true;
+        accelTime = 0;
         stopAllDrive();
         lastTurnTime = 0;
         totalDegrees = 0;
@@ -57,7 +58,11 @@ void turn(int turnDeg){
 
       if(totalDegrees <= turnDeg) {
         turnComplete = true;
+        accelTime = 0;
         stopAllDrive();
+        lastTurnTime = 0;
+        totalDegrees = 0;
+        lastTurnTime = millis();
 
         if (mainState == findingFire){
           storeLocation();
@@ -124,6 +129,8 @@ void stopAllDrive(void) {
 //drives straight by ensuring both encoders have moved the same distance
 
 void driveStraightForwardEnc(void) {
+  Kw = 0;
+  followWall();
 
 }
 
@@ -139,13 +146,6 @@ void followWall(void) {
   wallError = desiredDist - distToWall;
   //calculate velocity error
   velocityError = getRightVeloc() - getLeftVeloc();
-  //  Serial.print(leftSpeed);
-  //  Serial.print("  ");
-  //  Serial.print(rightSpeed);
-  //  Serial.print("  ");
-  //  Serial.print(getLeftVeloc());
-  //  Serial.print("  ");
-  //  Serial.println(getRightVeloc());
   //calculate speed based on the errors (proportional control)
   leftSpeed = accelTime * (baseSpeed + (Kw * wallError) + (Kv * velocityError));
   rightSpeed = accelTime * (baseSpeed - (Kw * wallError) - (Kv * velocityError));
