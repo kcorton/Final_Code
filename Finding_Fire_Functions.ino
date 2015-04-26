@@ -85,6 +85,9 @@ void seeWallFront(void) {
     break;
   default:
     Serial.println("HIT SEE WALL FUNCTION DEFAULT");
+    lcd.print("ERROR 07");
+    delay(5000);
+    break;
   }
 }
 
@@ -146,6 +149,9 @@ void lostWall(void) {
     
   default:
     Serial.println("HIT LOST WALL DEFAULT");
+    lcd.print("ERROR 08");
+    delay(5000);
+    break;
   }
 
 }
@@ -181,6 +187,11 @@ void seenCliff(void) {
     break;
   case SeenCliffBackOnCourse:
     driveStraightForwardEnc();
+    break;
+  default:
+    Serial.println("HIT SEEN CLIFF DEFAULT"):
+    lcd.println("ERROR 09");
+    delay(5000);
   }
 }
 
