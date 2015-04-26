@@ -63,16 +63,16 @@ int changeInDis(void) {
 
 void updateLocation(void) {
 
-  if (drivingDirection = xPos){
+  if (drivingDirection == xPos){
     xCoord = xCoord + changeInDis();
   }
-  else if(drivingDirection = yPos) {
+  else if(drivingDirection == yPos) {
     yCoord = yCoord + changeInDis();
   }
-  else if( drivingDirection = xNeg) {
+  else if( drivingDirection == xNeg) {
     xCoord = xCoord - changeInDis();
   }
-  else if(drivingDirection = yNeg) {
+  else if(drivingDirection == yNeg) {
     yCoord = yCoord - changeInDis();
   }
   
@@ -81,6 +81,25 @@ void updateLocation(void) {
   lastLeftTicks = 0; 
   lastRightTicks = 0;
 
+}
+
+/*********************************************************************************************/
+void printPosition(void) {
+  
+  lcd.setCursor(0,0);
+  lcd.print(drivingDirection);
+  
+//  lcd.setCursor(0, 0);
+//  lcd.print("(");
+//  lcd.setCursor(1, 0);
+//  lcd.print((int)xCoord);
+//  lcd.setCursor(4, 0);
+//  lcd.print(", ");
+//  lcd.setCursor(7, 0);
+//  lcd.print((int)yCoord);
+//  lcd.setCursor(10, 0);
+//  lcd.print(")");
+  
 }
 
 
