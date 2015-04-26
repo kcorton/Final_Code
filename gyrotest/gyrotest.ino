@@ -42,12 +42,22 @@ void setup() {
   Timer1.initialize(100000); // Interrupt every 0.1 second
   Timer1.attachInterrupt(TimerISR);
   
-  I2C_Init();
-  Gyro_Init();   
   
-  initializeMotors();
+  
+  I2C_Init();
+  
+  
+  Gyro_Init();  
+ 
+ 
+  
+//  initializeMotors();
   
   calcGyroOffset();
+  
+  Serial.println("DONE SETUP"); 
+  
+  
   
 }
 
@@ -109,36 +119,36 @@ void turn(int turnDeg) {
   
     if(turnDeg >= 0) {
       
-      /* Write Changes to the motors */
-      leftSpeed = -turningSpeed;
-      rightSpeed = turningSpeed;
-      updateMotors();
+//      /* Write Changes to the motors */
+//      leftSpeed = -turningSpeed;
+//      rightSpeed = turningSpeed;
+//      updateMotors();
       
       if(totalDegrees >= turnDeg) {
         turnComplete = true;
         
-        /* Stop the motors */
-        leftSpeed = 0;
-        rightSpeed = 0;
-        updateMotors();
+//        /* Stop the motors */
+//        leftSpeed = 0;
+//        rightSpeed = 0;
+//        updateMotors();
         
       }
     }
     
     else if(turnDeg < 0) {
       
-      /* Write Changes to the motors */
-      leftSpeed = turningSpeed;
-      rightSpeed = -turningSpeed;
-      updateMotors();
+//      /* Write Changes to the motors */
+//      leftSpeed = turningSpeed;
+//      rightSpeed = -turningSpeed;
+//      updateMotors();
       
       if(totalDegrees <= turnDeg) {
         turnComplete = true;
         
-        /* Stop the motors */
-        leftSpeed = 0;
-        rightSpeed = 0;
-        updateMotors();
+//        /* Stop the motors */
+//        leftSpeed = 0;
+//        rightSpeed = 0;
+//        updateMotors();
       }
     }
     
