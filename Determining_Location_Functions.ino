@@ -107,11 +107,11 @@ void printPosition(void) {
 //    lcd.setCursor(0, 0);
 //  lcd.print("(");
 //  lcd.setCursor(1, 0);
-//  lcd.print((int)leftCounter);
+//  lcd.print((int)mazeState);
 //  lcd.setCursor(4, 0);
 //  lcd.print(", ");
 //  lcd.setCursor(7, 0);
-//  lcd.print((int)rightCounter);
+//  lcd.print((int)cliffState);
 //  lcd.setCursor(10, 0);
 //  lcd.print(")");
   

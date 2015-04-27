@@ -112,7 +112,7 @@
 #define ninetyDeg 90
 #define negNinetyDeg -90
 #define pullAUiey 180
-#define inchesPerTick .0066401062 
+#define inchesPerTick .0016198837 
 #define turningSpeed 400
 #define wallProportionalVal 100
 
