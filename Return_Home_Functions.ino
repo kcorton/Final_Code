@@ -37,34 +37,36 @@ void driveToNextCoor(void) {
 
 }
 
-
 /*********************************************************************************************/
-// determine Distance X
-// determines how far the robot needs to drive in the X direction and returns that value
-
-int determineDistanceX(void) {
-
+// Return Homoe Init Direction FUnction 
+// sets the initial driving direction when robot is returning home and has found the wall again 
+void returnHomeInitDirection(void){
+  
+  if (drivingDirection == xPos){
+    drivingDirection = xNeg;
+  }
+  else if(drivingDirection == yPos) {
+    drivingDirection = yNeg;
+  }
+  else if( drivingDirection == xNeg) {
+    drivingDirection = xPos;
+  }
+  else if(drivingDirection == yNeg) {
+    drivingDirection = yPos;
+  }
+  
 }
 
-
 /*********************************************************************************************/
-// Determine Distance Y function
-// determines how far the robot needs to drive in the Y direction and returns that value
+// drive Home FUnction 
+// Drives a given distance using encoders and maybe a wall if we have it
 
-int determineDistanceY(void) {
-
+void driveHome(void){
+  
 }
 
-
 /*********************************************************************************************/
-// Determine Drive Dirrection Function
-// determines which dirrection the robot needs to turn and returns that value in degrees
-// clockwise = pos
-// counterclockwise = neg
-// also sets a global variable with how far it needs to drive in that direction
-
-int determineDriveDirection(void) {
-
+// calculate Distance To Drive
+// when the next coordinate is home this calculates how far the robot needs to drive
+void calculateDistanceToDirve(void){
 }
-
-

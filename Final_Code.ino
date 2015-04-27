@@ -31,6 +31,7 @@
 #define fireServoPin 11
 #define cliffSensorPin A2
 #define ledArrayPin 23
+#define startButtonPin 1
 
 // Main State machine States
 #define findingFire 0
@@ -78,9 +79,12 @@
 //Return Home State Machine States
 #define gettingToWallTurning180 0
 #define gettingBackToWallDrive 1
-#define gettingCoordinates 2
-#define determiningDriveDirrection 3
-#define drivingToCoordinate 4
+#define straighteningRobot 2
+#define turningOnce 3
+#define gettingCoordinates 4
+#define drivingToCoordinate 5
+#define determiningDriveDirrection 6
+#define drivingToHome 7
 
 //Fan Sweep State Machine
 #define armUp 0
@@ -232,6 +236,7 @@ boolean firstTimeThrough = true;
 boolean firstTimeThroughTurning = true;
 long tempTimer = 0;
 boolean firstTimeThroughWholeProgram = true;
+boolean homeIsReached = false;
 
 // Interrupt Variables
 volatile long countTime = 0;
@@ -289,14 +294,15 @@ void setup(){
   pinMode(leftMotorB, OUTPUT);
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
-
+  
+  //Start Button initialization
+  pinMode(startButtonPin, INPUT_PULLUP);
+  
   // I2C initialization
   Wire.begin();
   Serial.println("gyroStart");
 
   // Gyro Initializations 
-
-
   if (!gyro.init())
   {
     Serial.println("Failed to autodetect gyro type!");
@@ -326,6 +332,10 @@ void setup(){
   // set up interrups for drive Motors
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);  
+  
+  while(digitalRead(startButtonPin)){
+    //waiting for button
+  }
 
 }
 
@@ -537,25 +547,42 @@ void returnHome(void) {
     driveStraightForwardEnc();
     if(checkSideDisLess(closeWallDist)){
       stopAllDrive();
-      rtnState = gettingCoordinates;
+      rtnState = straighteningRobot;
+      tempTimer = countTime;
     }
-    break;   
+    if(checkFrontDis(frontWallDist)){
+      
+        stopAllDrive();
+        rtnState = turningOnce;
+      }
+    break;  
+  case straighteningRobot:
+    followWall();
+    if((countTime - tempTimer) >= 10){
+      stopAllDrive();
+      rtnState = gettingCoordinates;
+      returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
+    }
+    break;
+    
+  case turningOnce:
+  turn(ninetyDeg);
+  
+  if(turnComplete){
+    rtnState = gettingCoordinates;
+    returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
+  }
   case gettingCoordinates:
     getCoordinates();
 
-    // if getCoordinate return a next coordinate 
-    rtnState = determiningDriveDirrection;
+    if(currentArrayRow != 0){ 
+    rtnState = drivingToCoordinate;
+    }
 
-    //if getCoordinate returns 0 for no next coordinate
-    mainState = madeItHome;
-
-    break;
-  case determiningDriveDirrection:
-    turn(determineDriveDirection());
-
-    if(turnComplete){
-      turnComplete = false;
-      rtnState = drivingToCoordinate;
+    //else if the next coordinat is our home location
+    else { 
+      calculateDistanceToDirve();
+      rtnState = drivingToHome;
     }
     break;
   case drivingToCoordinate:
@@ -566,12 +593,21 @@ void returnHome(void) {
       updateLocation();
       rtnState = gettingCoordinates;
     }
-    if(disTraveledComplete(disToNextCoor)) { 
-      stopAllDrive();
-      updateLocation();
+    break;   
+  case determiningDriveDirrection:
+    turn(ninetyDeg);
+
+    if(turnComplete){
+      turnComplete = false;
       rtnState = gettingCoordinates;
     }
-    break; 
+    break;
+  case drivingToHome:
+    driveHome();
+    if(homeIsReached){
+      mainState = madeItHome;
+    }
+  
   default:
     Serial.println("HIT RETURN HOME DEFAULT");
     lcd.println("ERROR 03");
