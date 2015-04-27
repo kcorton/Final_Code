@@ -143,7 +143,7 @@ void activateFan(void) {
       break;
   }
   armMotor.write(pidOut);
-  Serial.println(armPos);
+  //Serial.println(armPos);
   
 //  // run fan between two extremes 
 //  digitalWrite(fanPin, HIGH);

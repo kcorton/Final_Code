@@ -112,7 +112,7 @@
 #define ninetyDeg 90
 #define negNinetyDeg -90
 #define pullAUiey 180
-#define inchesPerTick .0016198837 
+#define inchesPerTick .0066401062 
 #define turningSpeed 400
 #define wallProportionalVal 100
 
@@ -371,7 +371,7 @@ void findFire(void) {
 
   printPosition();
 
-  Serial.println(frontEchoTime);
+  Serial.println(getDis(sideSonar));
 
   // rotates the fire sensor looking for a fire
   lookForFire();
@@ -383,23 +383,23 @@ void findFire(void) {
 
   switch (mazeState) {
   case followingWall:  //
-    Serial.println("followWall");
+   // Serial.println("followWall");
     followWall();
 
     if(checkFrontDis(frontWallDist)){
-      Serial.println("seeingWallFront");
+     // Serial.println("seeingWallFront");
       mazeState = seeingWallFront;
     }
 
     if(checkSideDisGreater(closeWallDist)){ 
-      Serial.println("loosingWall");
+     // Serial.println("loosingWall");
       mazeState = loosingWall;
       tempTimer = countTime;
     }
 
     break;
   case seeingWallFront:
-    Serial.println("turningBCFront");
+  //  Serial.println("turningBCFront");
     seeWallFront();
 
     if(turnComplete){
@@ -410,7 +410,7 @@ void findFire(void) {
 
     break;
   case loosingWall:
-    Serial.println("lostWall");
+ //   Serial.println("lostWall");
     lostWall();
 
     if((lostWallState != lostWallStopping) && (lostWallState != lostWallKeepDrivingStraight)){
@@ -441,7 +441,6 @@ void findFire(void) {
         cliffState = 0;
       }
       if(checkFrontDis(frontWallDist)){
-
         mazeState = seeingWallFront;
         Kw = wallProportionalVal; 
         lostWallState = 0;

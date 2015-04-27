@@ -73,16 +73,19 @@ float getDis(int sonarToRead){
     {
       return ( (567.5 * ( (float)frontEchoTime/1000000)) * 12.0);
     } 
+    break;
   case sideSonar:
     {
       return ( (567.5 * ( (float)sideEchoTime/1000000)) * 12.0);
     } 
+    break;
   case backSonar:
     {
       return ( (567.5 * ( (float)backEchoTime/1000000)) * 12.0);
     } 
+    break;
   default:
-    Serial.println("HIT EXTINGUISH FIRE DEFAULT");
+    Serial.println("FRONT DISTANCE SONAR ERROR");
     lcd.println("ERROR 11");
     delay(5000);
     break;

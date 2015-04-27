@@ -30,9 +30,9 @@ void timerISR(){
   if (accelTime < 1){
     accelTime += .05;                             
   }
-  if(extState == activatingFan){
-    calcArmPID();
-  }
+//  if(extState == activatingFan){
+//    calcArmPID();
+//  }
 }
 
 //========================================================
@@ -110,7 +110,7 @@ void sideSonarISR(){
           break;
         }
       default:
-        Serial.println("HIT EXTINGUISH FIRE DEFAULT");
+        Serial.println("SIDE SONAR ISR DEFAULT HIT");
         lcd.println("ERROR");
         delay(5000);
         break;

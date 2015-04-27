@@ -26,7 +26,7 @@ void lookForFire(void) {
     Serial.println("lookForFire");
     /* Read current fire sensor value */
     flameVal = analogRead(firePin);
-    Serial.println(flameVal);
+    //Serial.println(flameVal);
     //Serial.println(fireServoPos);
 
     flameServo.write(fireServoPos);
