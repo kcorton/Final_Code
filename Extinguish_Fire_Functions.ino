@@ -123,58 +123,91 @@ void driveToCandle(void) {
 
 // Sweeps Fan between it's two extreme postions and checks if the fire is still detected 
 
-void activateFan(void) { 
-  // run fan between two extremes 
-  digitalWrite(fanPin, HIGH);
-  armTimePassed = countTime - armInitTime;
-  switch(armState){
-  case armToMid:
-    armMotor.write(108);
-    if(analogRead(armPotPin) > midPos){
-      armState = armAtMid;
-    }
-    break;
-  case armAtMid:
-    initTime = countTime;
-    armState = waitingAtMid;
-    break;
-  case waitingAtMid:
-    armMotor.write(100);
-    if((armTimePassed - initTime) > armWaitTime){
-      armState = armToTop;
-    }
-    break;
-  case armToTop:
-    armMotor.write(108);
-    if(analogRead(armPotPin) > highPos){
-      armState = reachedTop;
-    }
-    break;
-  case reachedTop:
-    initTime = countTime;
-    armState = waitingAtTop;
-    break;
-  case waitingAtTop: 
-    armMotor.write(100);
-    if((armTimePassed-initTime) > armWaitTime){
-      armState = loweringArm;
-    }
-    break;
-  case loweringArm:
-    armMotor.write(93);
-    if (analogRead(armPotPin) <=  lowPos){
-      armMotor.write(90);
-      digitalWrite(fanPin, LOW);
-      fanSweepComplete = true;
-    }
-    break;
+void activateFan(void) {
+ armPos = analogRead(armPotPin);
+  switch (armState) {
+    case armUp:
+      armWrite = 450;
+      if (armPos == armWrite) {
+        armState = armDown;
+      }
+      break;
 
-  default:
-    Serial.println("HIT ACTIVATE FAN DEFAULT");
-    lcd.println("ERROR 06");
-    delay(5000);
-    break;
+    case armDown:
+      armWrite = 320;
+      if (armPos == armWrite) {
+        armState = armUp;
+      }
+      break
   }
+  armMotor.write(calcArmPID());
+  
+//  // run fan between two extremes 
+//  digitalWrite(fanPin, HIGH);
+//  armTimePassed = countTime - armInitTime;
+//  switch(armState){
+//  case armToMid:
+//    armMotor.write(108);
+//    if(analogRead(armPotPin) > midPos){
+//      armState = armAtMid;
+//    }
+//    break;
+//  case armAtMid:
+//    initTime = countTime;
+//    armState = waitingAtMid;
+//    break;
+//  case waitingAtMid:
+//    armMotor.write(100);
+//    if((armTimePassed - initTime) > armWaitTime){
+//      armState = armToTop;
+//    }
+//    break;
+//  case armToTop:
+//    armMotor.write(108);
+//    if(analogRead(armPotPin) > highPos){
+//      armState = reachedTop;
+//    }
+//    break;
+//  case reachedTop:
+//    initTime = countTime;
+//    armState = waitingAtTop;
+//    break;
+//  case waitingAtTop: 
+//    armMotor.write(100);
+//    if((armTimePassed-initTime) > armWaitTime){
+//      armState = loweringArm;
+//    }
+//    break;
+//  case loweringArm:
+//    armMotor.write(93);
+//    if (analogRead(armPotPin) <=  lowPos){
+//      armMotor.write(90);
+//      digitalWrite(fanPin, LOW);
+//      fanSweepComplete = true;
+//    }
+//    break;
+//
+//  default:
+//    Serial.println("HIT ACTIVATE FAN DEFAULT");
+//    lcd.println("ERROR 06");
+//    delay(5000);
+//    break;
+//  }
+}
+
+int calcArmPID() {
+  int pidOut;
+  int integral += armPos;
+  int lastPos = armPos;
+  armPos = analogRead(armPotPin);
+  int pidRaw = Kp * (armWrite - armPos) + Kd * (lastPos - armPos) + Ki * integral;
+  if (pidRaw < 0) {
+    pidOut = map(pidRaw, 0, 90, -1000, 0);
+  }
+  else {
+    pidOut = map(pidRaw, 90, 180, 0, 1000);
+  }
+  return pidOut;
 }
 
 

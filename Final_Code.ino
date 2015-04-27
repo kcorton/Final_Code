@@ -129,12 +129,16 @@ Servo armMotor;
 Servo flameServo;
 
 // Variables for Activate Fan Function   
-int armTimePassed, armInitTime;
-int armWaitTime = 5;
-int highPos = 390;
-int midPos = 350;
-int lowPos = 320;
-long initTime = 0;
+//int armTimePassed, armInitTime;
+//int armWaitTime = 5;
+//int highPos = 390;
+//int midPos = 350;
+//int lowPos = 320;
+//long initTime = 0;
+int armWrite, armPos;
+#define kp 1
+#define kd 0.5
+#define ki .01
 
 //Variable for Driving To Candle
 long initTimeCandleDrive = 0;
