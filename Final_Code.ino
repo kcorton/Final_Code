@@ -62,10 +62,11 @@
 #define SeenCliffBackOnCourse 3
 
 //Extinguish Fire State Machine States
-#define drivingToCandle 0
-#define activatingFan 1
-#define checkingFlame 2
-#define flameIsOut 3
+#define initialScanning 0
+#define drivingToCandle 1
+#define activatingFan 2
+#define checkingFlame 3
+#define flameIsOut 4
 
 // Driving to Candle State Machine States
 #define scanning 0
@@ -74,13 +75,11 @@
 #define updatingLocation 3
 
 //Return Home State Machine States
-#define gettingToWallTurningX 0
-#define gettingBackToWallX 1
-#define gettingToWallTurningY 2
-#define gettingBackToWallY 3
-#define gettingCoordinates 4
-#define determiningDriveDirrection 5
-#define drivingToCoordinate 6
+#define gettingToWallTurning180 0
+#define gettingBackToWallDrive 1
+#define gettingCoordinates 2
+#define determiningDriveDirrection 3
+#define drivingToCoordinate 4
 
 //Fan Sweep State Machine
 #define raisingArm 0
@@ -98,6 +97,7 @@
 #define frontSonar 0
 #define sideSonar 1
 #define backSonar 2
+#define rightSonar 3
 
 // Array Columns 
 #define xCol 0
@@ -108,10 +108,12 @@
 #define frontWallDist 5  // the distance from the front wall when the robot should stop
 #define desiredDist 4  //the desired distance between the robot and the wall
 #define closeWallDist 6  // if a wall is within this value there is a close wall it should follow
-#define negBackFromCliffDist -1000  //(5 inches) how far the robot will back up after seeing a cliff in encoder t
-#define forwardDisToTurnAboutWall 1851  //(2 inches) how far the robot drives straight once it's lost the wall in encoder ticks
+#define negBackFromCliffDist -500  //(5 inches) how far the robot will back up after seeing a cliff in encoder t
+#define forwardDisToTurnAboutWall2 5000 
+#define forwardDisToTurnAboutWall 1500//(2 inches) how far the robot drives straight once it's lost the wall in encoder ticks
 #define ninetyDeg 90
 #define negNinetyDeg -90
+#define pullAUiey 180
 #define inchesPerTick .0016198837 
 #define turningSpeed 400
 #define wallProportionalVal 100
@@ -452,6 +454,14 @@ void findFire(void) {
 
 void extinguishFire(void){
   switch (extState) {
+    case initialScanning:
+    scan();
+
+    if(scanComplete) {
+      extState = drivingToCandle;
+      scanComplete = false; 
+    }
+    break;
 
   case drivingToCandle: 
     driveToCandle();
@@ -499,36 +509,20 @@ void extinguishFire(void){
 void returnHome(void) {
 
   switch (rtnState) {
-  case gettingToWallTurningX: 
-    turn(angleNeededX());
-    if (turnComplete) {
+  case gettingToWallTurning180: 
+    turn(pullAUiey);
+    if(turnComplete) {
       turnComplete = false; 
-      rtnState = gettingBackToWallX;
-    }
+      rtnState = gettingBackToWallDrive;
+    } 
     break;
-  case gettingBackToWallX:
-    driveStraightDesDis(determineDistanceX());
-    if (disTravComplete){
-      disTravComplete = false;
-      rtnState = gettingToWallTurningY;
-      updateLocation();
-    }
-    break;
-  case gettingToWallTurningY: 
-    turn(determineDriveDirection());
-    if (turnComplete) {
-      turnComplete = false; 
-      rtnState = gettingBackToWallY;
-    }
-    break;    
-  case gettingBackToWallY:
-    driveStraightDesDis(determineDistanceY());
-    if (disTravComplete){
-      disTravComplete = false;
+  case gettingBackToWallDrive:
+    driveStraightForwardEnc();
+    if(checkSideDisLess(closeWallDist)){
+      stopAllDrive();
       rtnState = gettingCoordinates;
-      updateLocation();
     }
-    break;    
+    break;   
   case gettingCoordinates:
     getCoordinates();
 

@@ -2,6 +2,7 @@
 // madeItHome
 
 void allDone(void) {
+  stopAllDrive();
 
 }
 
@@ -13,7 +14,7 @@ void getCoordinates(void) {
   currentArrayRow--;
   nextXCoord = locationsArray[currentArrayRow][xCol];
   nextYCoord = locationsArray[currentArrayRow][yCol];  
- 
+
 }
 
 
@@ -24,26 +25,18 @@ void getCoordinates(void) {
 
 void driveToNextCoor(void) {
 
-  if(checkSideDisLess(closeWallDist)){
   // if the sonar sees a close wall
-  followWall();
+  if(checkSideDisLess(closeWallDist)){
+    followWall();
   }
-  
-  else {
+
   // if sensor sees no close wall 
-  driveStraightForwardEnc();
+  else {
+    driveStraightForwardEnc();
   }
 
 }
 
-/*********************************************************************************************/
-// Angle Needed X
-// returns the angle needed to turn to drive the robot to the correct x value when returning to the wall
-// this will probably use whatever angle we originally turned or possibly the gyro
-
-int angleNeededX(void){
-
-}
 
 /*********************************************************************************************/
 // determine Distance X
@@ -73,4 +66,5 @@ int determineDistanceY(void) {
 int determineDriveDirection(void) {
 
 }
+
 

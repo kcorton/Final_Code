@@ -127,7 +127,7 @@ void lostWall(void) {
     break; 
 
   case lostWallKeepDrivingStraight2: 
-    driveStraightDesDis(forwardDisToTurnAboutWall);
+    driveStraightDesDis(forwardDisToTurnAboutWall2);
     if(disTravComplete) {
       firstTimeThrough = true;
       lostWallState = lostWallTurning2;

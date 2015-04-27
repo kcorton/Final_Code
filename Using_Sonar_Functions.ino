@@ -39,13 +39,25 @@ boolean checkSideDisLess(int desDis){
 
 boolean checkSideDisGreater(int desDis){
 
-  if (getDis(sideSonar) >= desDis) { 
-    stopAllDrive();
-    return true; 
-  }
+  if(mainState == returningHome){
+    if (getDis(rightSonar) >= desDis) { 
+      stopAllDrive();
+      return true; 
+    }
 
-  else { 
-    return false; 
+    else { 
+      return false; 
+    }
+  }
+  else {
+    if(getDis(sideSonar) >= desDis) { 
+      stopAllDrive();
+      return true; 
+    }
+
+    else { 
+      return false; 
+    }
   }
 
 }
@@ -57,20 +69,23 @@ boolean checkSideDisGreater(int desDis){
 
 float getDis(int sonarToRead){
   switch(sonarToRead){
-    case frontSonar:{
-       return ( (567.5 * ( (float)frontEchoTime/1000000)) * 12.0);
+  case frontSonar:
+    {
+      return ( (567.5 * ( (float)frontEchoTime/1000000)) * 12.0);
     } 
-    case sideSonar:{
-       return ( (567.5 * ( (float)sideEchoTime/1000000)) * 12.0);
+  case sideSonar:
+    {
+      return ( (567.5 * ( (float)sideEchoTime/1000000)) * 12.0);
     } 
-    case backSonar:{
-       return ( (567.5 * ( (float)backEchoTime/1000000)) * 12.0);
+  case backSonar:
+    {
+      return ( (567.5 * ( (float)backEchoTime/1000000)) * 12.0);
     } 
-    default:
-      Serial.println("HIT EXTINGUISH FIRE DEFAULT");
-      lcd.println("ERROR 11");
-      delay(5000);
-      break;
+  default:
+    Serial.println("HIT EXTINGUISH FIRE DEFAULT");
+    lcd.println("ERROR 11");
+    delay(5000);
+    break;
   }
 }
 
@@ -78,55 +93,62 @@ float getDis(int sonarToRead){
 // Pings all the SOnar 
 
 void ping(int sensorToPing){
-  
-  
+
+
   if(!waiting){
-   // Serial.println("ping");
+    // Serial.println("ping");
     int pingPin;
     switch(sensorToPing){
-      case frontSonar:{    //FRONTSONAR
+    case frontSonar:
+      {    //FRONTSONAR
         pingPin = frontPingPin;
         break;
       }
-      case sideSonar:{    //SIDESONAR
+    case sideSonar:
+      {    //SIDESONAR
         pingPin = sidePingPin;
         break;
       }
-      case backSonar:{    //BACKSONAR
+    case backSonar:
+      {    //BACKSONAR
         pingPin = backPingPin;
         break;
       }
-      default:
-        Serial.println("HIT PING DEFAULT");
-        lcd.println("ERROR");
-        delay(5000);
-        break;
+    default:
+      Serial.println("HIT PING DEFAULT");
+      lcd.println("ERROR");
+      delay(5000);
+      break;
     }
     // Serial.print(pingPin);
-  
+
     delay(50);  //ensures a second ping is not sent out before 
-                //the first returns
+    //the first returns
     digitalWrite(pingPin,LOW);
     digitalWrite(pingPin,HIGH);
     delayMicroseconds(250);
     digitalWrite(pingPin,LOW); 
-   
+
     if(sensorToPing == backSonar){
       backEchoTime = pulseIn(backEchoPin,HIGH);
       switch(mainState){
-        case findingFire:{
+      case findingFire:
+        {
           pingNext = frontSonar;
           break;
         }
-        case extinguishingFire:{
+      case extinguishingFire:
+        {
           pingNext = frontSonar;
           break;
         }
-        case returningHome:{
+      case returningHome:
+        {
           pingNext = sideSonar;
           break;
         }
-        case madeItHome:{
+      case madeItHome:
+        {
           pingNext = frontSonar;
           break;
         }
@@ -137,6 +159,7 @@ void ping(int sensorToPing){
     } 
   }
 }
+
 
 
 
