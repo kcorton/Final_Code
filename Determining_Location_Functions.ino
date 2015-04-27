@@ -90,17 +90,28 @@ void updateLocation(void) {
 /*********************************************************************************************/
 void printPosition(void) {
   
-  lcd.setCursor(0,0);
-  lcd.print(drivingDirection);
+//  lcd.setCursor(0,0);
+//  lcd.print(drivingDirection);
   
-//  lcd.setCursor(0, 0);
+  lcd.setCursor(0, 0);
+  lcd.print("(");
+  lcd.setCursor(1, 0);
+  lcd.print((int)xCoord);
+  lcd.setCursor(4, 0);
+  lcd.print(", ");
+  lcd.setCursor(7, 0);
+  lcd.print((int)yCoord);
+  lcd.setCursor(10, 0);
+  lcd.print(")");
+  
+//    lcd.setCursor(0, 0);
 //  lcd.print("(");
 //  lcd.setCursor(1, 0);
-//  lcd.print((int)xCoord);
+//  lcd.print((int)mazeState);
 //  lcd.setCursor(4, 0);
 //  lcd.print(", ");
 //  lcd.setCursor(7, 0);
-//  lcd.print((int)yCoord);
+//  lcd.print((int)cliffState);
 //  lcd.setCursor(10, 0);
 //  lcd.print(")");
   

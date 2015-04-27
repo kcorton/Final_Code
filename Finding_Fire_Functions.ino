@@ -21,7 +21,7 @@ void lookForFire(void) {
 
   int flameVal;
 
-  if(countTime - lastFireTimeCount >= 2) {
+  if(countTime - lastFireTimeCount >= 1) {
 
     Serial.println("lookForFire");
     /* Read current fire sensor value */
@@ -55,6 +55,8 @@ void lookForFire(void) {
     if(flameVal < 200) {
       /* Change to extiguish fire state */
       mainState = extinguishingFire;
+      stopAllDrive();
+      delay(5000);
       fireServoPos = 0; // reset the position
       lastFlameVal = 2000; // reset the last flame val
       flameServo.write(0); // write the servo back to reset position
@@ -146,7 +148,7 @@ void lostWall(void) {
   case lostWallDrivingStraight: 
     driveStraightForwardEnc();
     break;
-    
+
   default:
     Serial.println("HIT LOST WALL DEFAULT");
     lcd.print("ERROR 08");
@@ -173,14 +175,13 @@ void seenCliff(void) {
     if(disTravComplete) {
       cliffState = SeenCliffTurningToStraight;
       disTravComplete = false;
-      firstTimeThrough = true;
-      Kv = -Kv; 
-      baseSpeed = -baseSpeed;
+      leftSpeed = baseSpeed;
+      rightSpeed = baseSpeed;
     }
     break;
   case SeenCliffTurningToStraight:
     updateLocation();
-    turn(ninetyDeg);
+    turn(negNinetyDeg);
     if(turnComplete){
       cliffState = SeenCliffBackOnCourse;
       turnComplete = false;
@@ -206,11 +207,13 @@ void checkForCliff(void){
     Serial.println("cliff!!!");
     lostWallState = 0;
     stopAllDrive();
+    delay(500);
     mazeState = seeingCliff;
     cliffState = 0;
   }
 
 }
+
 
 
 

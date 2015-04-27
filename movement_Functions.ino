@@ -39,7 +39,7 @@ void turn(int turnDeg){
         lastTurnCount = 0;
         totalDegrees = 0;
         firstTimeThroughTurning = true;
-//        lastTurnTime = millis();                      ///////Call this before turn we think
+        //        lastTurnTime = millis();                      ///////Call this before turn we think
 
         if (mainState == findingFire){
           storeLocation();
@@ -68,7 +68,7 @@ void turn(int turnDeg){
         lastTurnTime = 0;
         totalDegrees = 0;
         firstTimeThroughTurning = true;
-//        lastTurnTime = millis();
+        //        lastTurnTime = millis();
 
         if (mainState == findingFire){
           storeLocation();
@@ -102,13 +102,25 @@ boolean disTraveledComplete(int desDis) {
     temporaryRightCounter = rightCounter;
     firstTimeThrough = false;
   }
-  if ( (leftCounter - temporaryLeftCounter) >= desDis){
-    if ((rightCounter - temporaryRightCounter) >= desDis){
-      return true; 
+  if (desDis > 0){
+    if ( (leftCounter - temporaryLeftCounter) >= desDis){
+      if ((rightCounter - temporaryRightCounter) >= desDis){
+        return true; 
+      }
+    }
+    else {
+      return false;
     }
   }
-  else {
-    return false;
+  else if (desDis < 0){
+    if ( (leftCounter - temporaryLeftCounter) <= desDis){
+      if ((rightCounter - temporaryRightCounter) <= desDis){
+        return true; 
+      }
+    }
+    else {
+      return false;
+    }
   }
 
 }
@@ -171,13 +183,10 @@ void driveStraightForwardEnc(void) {
 //drives straight by ensuring both encoders have moved the same distance
 
 void driveStraightBackwardsEnc(void) {
-  if (firstTimeThrough){
-  Kw = 0;
-  Kv = -Kv;
-  baseSpeed = -baseSpeed;
-  firstTimeThrough = false;
-  }
-  followWall();
+  leftSpeed = -baseSpeed;
+  rightSpeed = -baseSpeed;
+  updateMotors();
+  
 
 }
 
@@ -299,6 +308,7 @@ int mapSpeed(int inSpeed){
   //convert to an analogWrite value (0 to 255)
   return ( (float)inSpeed/9.8 );
 }
+
 
 
 

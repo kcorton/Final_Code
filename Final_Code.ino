@@ -105,11 +105,11 @@
 
 // Pre-defined Values and Distances
 #define candleDist 1 // the distance away from the candle when the robot will stop
-#define frontWallDist 4  // the distance from the front wall when the robot should stop
+#define frontWallDist 5  // the distance from the front wall when the robot should stop
 #define desiredDist 4  //the desired distance between the robot and the wall
 #define closeWallDist 6  // if a wall is within this value there is a close wall it should follow
-#define negBackFromCliffDist -3086  //(5 inches) how far the robot will back up after seeing a cliff in encoder t
-#define forwardDisToTurnAboutWall 1234  //(2 inches) how far the robot drives straight once it's lost the wall in encoder ticks
+#define negBackFromCliffDist -1000  //(5 inches) how far the robot will back up after seeing a cliff in encoder t
+#define forwardDisToTurnAboutWall 1851  //(2 inches) how far the robot drives straight once it's lost the wall in encoder ticks
 #define ninetyDeg 90
 #define negNinetyDeg -90
 #define inchesPerTick .0016198837 
@@ -129,6 +129,10 @@ int armWaitTime = 100;
 int highPos = 460;
 int lowPos = 320;
 long initTime = 0;
+
+//Variable for Driving To Candle
+long initTimeCandleDrive = 0;
+int candleTurn = 0;
 
 // Variables for Fire Sensor Functions
 int servoIncreasing = 0;
@@ -318,12 +322,15 @@ void setup(){
 
 
 void loop() {
+  
+//  lcd.setCursor(0,0);
+//  lcd.print(mainState);
 
   //Serial.println("beginLoop");
 
   //Serial.println(millis());
   
-  printPosition();
+  
   ping(pingNext); // continually pings the sonars being used to update their values
 
   switch (mainState) {
@@ -352,13 +359,15 @@ void loop() {
 // FindFire Switch State
 
 void findFire(void) {
+  
+  printPosition();
 
   Serial.println(frontEchoTime);
 
   // rotates the fire sensor looking for a fire
   lookForFire();
   // checks the cliff detector for a cliff
-  if (mainState != seeingCliff){
+  if (mazeState != seeingCliff){
   checkForCliff();
   }
 
@@ -394,6 +403,8 @@ void findFire(void) {
   case loosingWall:
     Serial.println("lostWall");
     lostWall();
+    
+    if((lostWallState != lostWallStopping) && (lostWallState != lostWallKeepDrivingStraight)){
 
       //once sonar can see a wall again
       if(checkSideDisLess(closeWallDist)){
@@ -408,11 +419,13 @@ void findFire(void) {
         Kw = wallProportionalVal; 
         lostWallState = 0;
       }
+    }
 
     break;
   case seeingCliff: 
     seenCliff();
 
+    if (cliffState == SeenCliffBackOnCourse){
     //once sonar can see a wall again 
     if(checkSideDisLess(closeWallDist)){
       mazeState = followingWall;
@@ -424,6 +437,7 @@ void findFire(void) {
         Kw = wallProportionalVal; 
         lostWallState = 0;
       }
+    }
     break; 
   default:
     Serial.println("HIT FIND FIRE DEFAULT");

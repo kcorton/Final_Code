@@ -40,6 +40,7 @@ boolean checkSideDisLess(int desDis){
 boolean checkSideDisGreater(int desDis){
 
   if (getDis(sideSonar) >= desDis) { 
+    stopAllDrive();
     return true; 
   }
 

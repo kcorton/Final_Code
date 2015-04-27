@@ -54,7 +54,19 @@ void scan(void) {
 // turns robot to the angle specified based on the variable changed in the scan function
 
 void turnTowardFlame(void){
-
+  if (firePosition > 90){
+    candleTurn = -(firePosition - 90);
+    turn(candleTurn);
+    
+  }
+  else if (firePosition < 90){
+    candleTurn = (90 -firePosition);
+    turn(candleTurn);
+  }
+  else {
+    // do not need to turn, turn is complete
+    turnComplete = true;
+  }
 }
 
 /*********************************************************************************************/
@@ -77,6 +89,7 @@ void driveToCandle(void) {
     if(turnComplete){
       turnComplete = false;
       extState = drivingForTime;
+      initTimeCandleDrive = countTime;
     }
 
     break;
@@ -84,8 +97,11 @@ void driveToCandle(void) {
 
   case drivingForTime:
     driveStraightForwardEnc();
-    // if it's been a certain amount of time 
-    driveToCandleState = updatingLocation;
+    if((countTime - initTimeCandleDrive) >= 20){
+      stopAllDrive();
+      driveToCandleState = updatingLocation;
+    
+    }
 
     break;
 
@@ -153,6 +169,16 @@ void activateFan(void) {
 
 void reportFlame(void) {
 
+  lcd.setCursor(0, 0);
+  lcd.print("(");
+  lcd.setCursor(1, 0);
+  lcd.print((int)xCoord);
+  lcd.setCursor(4, 0);
+  lcd.print(", ");
+  lcd.setCursor(7, 0);
+  lcd.print((int)yCoord);
+  lcd.setCursor(10, 0);
+  lcd.print(")");
 }
 
 
@@ -161,7 +187,83 @@ void reportFlame(void) {
 // this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
 
 void updateAngleDriveLocation(void){
+  
+  if (drivingDirection == xPos){
+    if (candleTurn > 0){
+      
+    xCoord = xCoord + candleChangeDisCos();
+    yCoord = yCoord + candleChangeDisSin();
+    }
+    
+    else if(candleTurn < 0){
+    xCoord = xCoord + candleChangeDisCos();
+    yCoord = yCoord - candleChangeDisSin();
+    }
+  }
+  else if(drivingDirection == yPos) {
+    if (candleTurn > 0){
+      
+    xCoord = xCoord - candleChangeDisSin();
+    yCoord = yCoord + candleChangeDisCos();
+    }
+    
+    else if(candleTurn < 0){
+    xCoord = xCoord + candleChangeDisSin();
+    yCoord = yCoord + candleChangeDisCos();
+    }
+  }
+  else if( drivingDirection == xNeg) {
+    if (candleTurn > 0){
+      
+    xCoord = xCoord - candleChangeDisCos();
+    yCoord = yCoord - candleChangeDisSin();
+    }
+    
+    else if(candleTurn < 0){
+    xCoord = xCoord - candleChangeDisCos();
+    yCoord = yCoord + candleChangeDisSin();
+    }
+  }
+  else if(drivingDirection == yNeg) {
+    if (candleTurn > 0){
+      
+    xCoord = xCoord + candleChangeDisSin();
+    yCoord = yCoord - candleChangeDisCos();
+    }
+    
+    else if(candleTurn < 0){
+    xCoord = xCoord - candleChangeDisSin();
+    yCoord = yCoord - candleChangeDisCos();
+    }
+  }
+  
+  leftCounter = 0;
+  rightCounter = 0;
+  lastLeftTicks = 0; 
+  lastRightTicks = 0;
 
 }
 
+/*********************************************************************************************/
+
+float candleChangeDisCos(void){
+  float leftDist = 0;
+  float rightDist = 0;
+
+  leftDist = inchesPerTick * leftCounter;
+  rightDist = inchesPerTick * rightCounter;
+
+  return (cos((leftDist + rightDist) / 2)) ; 
+}
+/*********************************************************************************************/
+
+float candleChangeDisSin(void){
+  float leftDist = 0;
+  float rightDist = 0;
+
+  leftDist = inchesPerTick * leftCounter;
+  rightDist = inchesPerTick * rightCounter;
+
+  return (sin((leftDist + rightDist) / 2)) ;  
+}
 
