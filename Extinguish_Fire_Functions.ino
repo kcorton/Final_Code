@@ -8,44 +8,44 @@ void scan(void) {
 
   int currFlameVal;
 
-  if(countTime - lastFireTimeCount > 1) {
+  //  if(countTime - lastFireTimeCount > 1) {
 
-    if(fireServoPos > 180) {
+  if(fireServoPos > 180) {
 
-      fireServoPos = 0; // reset the position
-      lastFlameVal = 2000; // reset the last flame val
-      flameServo.write(0); // write the servo back to reset position
-      scanComplete = true; //Indicate the scan is complete
+    fireServoPos = 0; // reset the position
+    lastFlameVal = 2000; // reset the last flame val
+    flameServo.write(0); // write the servo back to reset position
+    scanComplete = true; //Indicate the scan is complete
 
       Serial.println("DONEEEEE");
-      Serial.println(firePosition);
-
-    }
-
-    else {
-
-      flameServo.write(fireServoPos);
-      currFlameVal = analogRead(firePin);
-
-      Serial.print("Position ");
-      Serial.print(fireServoPos);
-      Serial.print("Flame Value ");
-      Serial.println(currFlameVal);
-
-      if(currFlameVal < lastFlameVal) {
-
-        lastFlameVal = currFlameVal;
-        firePosition =  fireServoPos;
-
-      }
-
-      fireServoPos += 5;
-
-    }
-
-    lastFireTimeCount = countTime; // reset the stored time variable
+    Serial.println(firePosition);
 
   }
+
+  else {
+
+    flameServo.write(fireServoPos);
+    currFlameVal = analogRead(firePin);
+
+    Serial.print("Position ");
+    Serial.print(fireServoPos);
+    Serial.print("Flame Value ");
+    Serial.println(currFlameVal);
+
+    if(currFlameVal < lastFlameVal) {
+
+      lastFlameVal = currFlameVal;
+      firePosition =  fireServoPos;
+
+    }
+
+    fireServoPos += 5;
+
+  }
+
+  lastFireTimeCount = countTime; // reset the stored time variable
+
+    //  }
 
 }
 
@@ -57,7 +57,7 @@ void turnTowardFlame(void){
   if (firePosition > 90){
     candleTurn = (firePosition - 90);
     turn(candleTurn);
-    
+
   }
   else if (firePosition < 90){
     candleTurn = -(90 -firePosition);
@@ -100,7 +100,7 @@ void driveToCandle(void) {
     if((countTime - initTimeCandleDrive) >= 20){
       stopAllDrive();
       driveToCandleState = updatingLocation;
-    
+
     }
 
     break;
@@ -124,13 +124,28 @@ void driveToCandle(void) {
 // Sweeps Fan between it's two extreme postions and checks if the fire is still detected 
 
 void activateFan(void) { 
-
   // run fan between two extremes 
   digitalWrite(fanPin, HIGH);
   armTimePassed = countTime - armInitTime;
   switch(armState){
-  case raisingArm:
-    armMotor.write(122);
+  case armToMid:
+    armMotor.write(108);
+    if(analogRead(armPotPin) > midPos){
+      armState = armAtMid;
+    }
+    break;
+  case armAtMid:
+    initTime = countTime;
+    armState = waitingAtMid;
+    break;
+  case waitingAtMid:
+    armMotor.write(100);
+    if((armTimePassed - initTime) > armWaitTime){
+      armState = armToTop;
+    }
+    break;
+  case armToTop:
+    armMotor.write(108);
     if(analogRead(armPotPin) > highPos){
       armState = reachedTop;
     }
@@ -153,7 +168,7 @@ void activateFan(void) {
       fanSweepComplete = true;
     }
     break;
-    
+
   default:
     Serial.println("HIT ACTIVATE FAN DEFAULT");
     lcd.println("ERROR 06");
@@ -161,6 +176,7 @@ void activateFan(void) {
     break;
   }
 }
+
 
 /*********************************************************************************************/
 // Report Flame Function 
@@ -187,56 +203,56 @@ void reportFlame(void) {
 // this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
 
 void updateAngleDriveLocation(void){
-  
+
   if (drivingDirection == xPos){
     if (candleTurn > 0){
-      
-    xCoord = xCoord + candleChangeDisCos();
-    yCoord = yCoord + candleChangeDisSin();
+
+      xCoord = xCoord + candleChangeDisCos();
+      yCoord = yCoord + candleChangeDisSin();
     }
-    
+
     else if(candleTurn < 0){
-    xCoord = xCoord + candleChangeDisCos();
-    yCoord = yCoord - candleChangeDisSin();
+      xCoord = xCoord + candleChangeDisCos();
+      yCoord = yCoord - candleChangeDisSin();
     }
   }
   else if(drivingDirection == yPos) {
     if (candleTurn > 0){
-      
-    xCoord = xCoord - candleChangeDisSin();
-    yCoord = yCoord + candleChangeDisCos();
+
+      xCoord = xCoord - candleChangeDisSin();
+      yCoord = yCoord + candleChangeDisCos();
     }
-    
+
     else if(candleTurn < 0){
-    xCoord = xCoord + candleChangeDisSin();
-    yCoord = yCoord + candleChangeDisCos();
+      xCoord = xCoord + candleChangeDisSin();
+      yCoord = yCoord + candleChangeDisCos();
     }
   }
   else if( drivingDirection == xNeg) {
     if (candleTurn > 0){
-      
-    xCoord = xCoord - candleChangeDisCos();
-    yCoord = yCoord - candleChangeDisSin();
+
+      xCoord = xCoord - candleChangeDisCos();
+      yCoord = yCoord - candleChangeDisSin();
     }
-    
+
     else if(candleTurn < 0){
-    xCoord = xCoord - candleChangeDisCos();
-    yCoord = yCoord + candleChangeDisSin();
+      xCoord = xCoord - candleChangeDisCos();
+      yCoord = yCoord + candleChangeDisSin();
     }
   }
   else if(drivingDirection == yNeg) {
     if (candleTurn > 0){
-      
-    xCoord = xCoord + candleChangeDisSin();
-    yCoord = yCoord - candleChangeDisCos();
+
+      xCoord = xCoord + candleChangeDisSin();
+      yCoord = yCoord - candleChangeDisCos();
     }
-    
+
     else if(candleTurn < 0){
-    xCoord = xCoord - candleChangeDisSin();
-    yCoord = yCoord - candleChangeDisCos();
+      xCoord = xCoord - candleChangeDisSin();
+      yCoord = yCoord - candleChangeDisCos();
     }
   }
-  
+
   leftCounter = 0;
   rightCounter = 0;
   lastLeftTicks = 0; 
@@ -266,4 +282,6 @@ float candleChangeDisSin(void){
 
   return (sin((leftDist + rightDist) / 2)) ;  
 }
+
+
 

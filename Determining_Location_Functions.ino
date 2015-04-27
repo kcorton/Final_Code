@@ -53,8 +53,8 @@ int changeInDis(void) {
   float leftDist = 0;
   float rightDist = 0;
 
-  leftDist = inchesPerTick * leftCounter;
-  rightDist = inchesPerTick * rightCounter;
+  leftDist = (float)inchesPerTick * leftCounter;
+  rightDist = (float)inchesPerTick * rightCounter;
 
   return (leftDist + rightDist) / 2 ; 
 

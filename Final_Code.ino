@@ -83,10 +83,13 @@
 #define drivingToCoordinate 4
 
 //Fan Sweep State Machine
-#define raisingArm 0
-#define reachedTop 1
-#define waitingAtTop 2
-#define loweringArm 3
+#define armToMid 0
+#define armAtMid 1
+#define waitingAtMid 2
+#define armToTop 3
+#define reachedTop 4
+#define waitingAtTop 5
+#define loweringArm 6
 
 //Turning State Machine 
 #define xPos 0
@@ -98,7 +101,6 @@
 #define frontSonar 0
 #define sideSonar 1
 #define backSonar 2
-#define rightSonar 3
 
 // Array Columns 
 #define xCol 0
@@ -128,8 +130,9 @@ Servo flameServo;
 
 // Variables for Activate Fan Function   
 int armTimePassed, armInitTime;
-int armWaitTime = 100;
-int highPos = 460;
+int armWaitTime = 5;
+int highPos = 390;
+int midPos = 350;
 int lowPos = 320;
 long initTime = 0;
 
@@ -238,7 +241,7 @@ void setup(){
   // setup LED array
   pinMode(ledArrayPin,OUTPUT);
   digitalWrite(ledArrayPin,HIGH);
-  
+
   // setup Fan 
   pinMode(fanPin, OUTPUT);
   digitalWrite(fanPin,LOW);
@@ -253,7 +256,7 @@ void setup(){
   pinMode(leftMotorB, OUTPUT);
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
-  
+
   // LCD setup
   lcd.begin(16, 2);
 
@@ -328,15 +331,15 @@ void setup(){
 
 
 void loop() {
-  
-//  lcd.setCursor(0,0);
-//  lcd.print(mainState);
+
+  //  lcd.setCursor(0,0);
+  //  lcd.print(mainState);
 
   //Serial.println("beginLoop");
 
   //Serial.println(millis());
-  
-  
+
+
   ping(pingNext); // continually pings the sonars being used to update their values
 
   switch (mainState) {
@@ -365,7 +368,7 @@ void loop() {
 // FindFire Switch State
 
 void findFire(void) {
-  
+
   printPosition();
 
   Serial.println(frontEchoTime);
@@ -374,7 +377,7 @@ void findFire(void) {
   lookForFire();
   // checks the cliff detector for a cliff
   if (mazeState != seeingCliff){
-  checkForCliff();
+    checkForCliff();
   }
 
 
@@ -409,7 +412,7 @@ void findFire(void) {
   case loosingWall:
     Serial.println("lostWall");
     lostWall();
-    
+
     if((lostWallState != lostWallStopping) && (lostWallState != lostWallKeepDrivingStraight)){
 
       //once sonar can see a wall again
@@ -432,12 +435,12 @@ void findFire(void) {
     seenCliff();
 
     if (cliffState == SeenCliffBackOnCourse){
-    //once sonar can see a wall again 
-    if(checkSideDisLess(closeWallDist)){
-      mazeState = followingWall;
-      cliffState = 0;
-    }
-    if(checkFrontDis(frontWallDist)){
+      //once sonar can see a wall again 
+      if(checkSideDisLess(closeWallDist)){
+        mazeState = followingWall;
+        cliffState = 0;
+      }
+      if(checkFrontDis(frontWallDist)){
 
         mazeState = seeingWallFront;
         Kw = wallProportionalVal; 
@@ -457,9 +460,10 @@ void findFire(void) {
 //Extinguish Fire Switch Statement
 
 void extinguishFire(void){
+  printPosition();
   digitalWrite(ledArrayPin,LOW);
   switch (extState) {
-    case initialScanning:
+  case initialScanning:
     scan();
     stopAllDrive();
     if(scanComplete) {
@@ -474,7 +478,8 @@ void extinguishFire(void){
     if(checkFrontDis(candleDist)){
       stopAllDrive();
       extState = activatingFan;
-      armState = raisingArm;
+      armState = armToMid;
+      armInitTime = countTime;
     }
     break;
   case activatingFan:
@@ -483,6 +488,7 @@ void extinguishFire(void){
     if(fanSweepComplete){ 
       extState = checkingFlame;
       fanSweepComplete = false;
+      armInitTime = countTime;
     }
 
     break;
@@ -490,12 +496,13 @@ void extinguishFire(void){
   case checkingFlame: 
     scan();
 
-    // if scan returns interrupt on Fire Sensor 
+    if(lastFlameVal < 300){ 
     extState = activatingFan; 
+    }
 
-    // else 
-
-    extState = flameIsOut;
+    else {
+      extState = flameIsOut;
+    }
     break; 
   case flameIsOut: 
     reportFlame(); 
@@ -588,6 +595,7 @@ void calcGyroOffset(void) {
   //Serial.println(offset);
 
 }
+
 
 
 

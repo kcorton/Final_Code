@@ -40,7 +40,7 @@ boolean checkSideDisLess(int desDis){
 boolean checkSideDisGreater(int desDis){
 
   if(mainState == returningHome){
-    if (getDis(rightSonar) >= desDis) { 
+    if (getDis(backSonar) >= desDis) { 
       stopAllDrive();
       return true; 
     }
