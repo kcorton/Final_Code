@@ -86,7 +86,7 @@ void sideSonarISR(){
   }
   else{
     tempEchoSide = micros() - sidePingTime;
-    if((tempEchoSide < 30000) && (tempEchoSide >=0)){
+    if(tempEchoSide < 30000){
       sideEchoTime = tempEchoSide;
       switch(mainState){
       case findingFire:

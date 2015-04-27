@@ -395,7 +395,7 @@ void findFire(void) {
 
   switch (mazeState) {
   case followingWall:  //
-    Serial.println("followWall");
+   // Serial.println("followWall");
     followWall();
 
     if(checkFrontDis(frontWallDist)){
@@ -405,13 +405,8 @@ void findFire(void) {
 
     if(checkSideDisGreater(closeWallDist)){ 
      // Serial.println("loosingWall");
-     if(!firstTimeThroughWholeProgram){
       mazeState = loosingWall;
       tempTimer = countTime;
-     }
-     else {
-     firstTimeThroughWholeProgram = false;
-    }
     }
 
     break;
@@ -427,14 +422,13 @@ void findFire(void) {
 
     break;
   case loosingWall:
-    Serial.println("lostWall");
+ //   Serial.println("lostWall");
     lostWall();
 
     if((lostWallState != lostWallStopping) && (lostWallState != lostWallKeepDrivingStraight)){
 
       //once sonar can see a wall again
       if(checkSideDisLess(closeWallDist)){
-        Serial.println("lostWall CHECKING SONAR");
 
         mazeState = followingWall;
         Kw = wallProportionalVal; 
