@@ -27,7 +27,7 @@ int pingNext = FRONTSONAR;
 #define exstinguishingFire 1
 #define returningHome 2
 #define arrivedHome 3
-int mainState = 2;
+int mainState = 0;
 //========================================================
 void initializeSonar(){
   //Sonar pin declarations

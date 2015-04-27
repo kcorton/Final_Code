@@ -11,8 +11,8 @@ int rightEncoderA = 3;
 
 float distToGoL = 0.0;
 float distToGoR = 0.0;
-int baseSpeed = 100;
-int travelSpeed = 100;
+int baseSpeed = 125;
+int travelSpeed = 125;
 
 float Ka = 1;
 int Kb = 1;
@@ -26,10 +26,10 @@ volatile long int leftCounterTemp = 0;
 
 float leftDist = 0;
 float leftDistTemp =0; 
-int leftSpeed = 100;
+int leftSpeed = 125;
 float rightDist = 0;
 float rightDistTemp =0; 
-int rightSpeed = 100;
+int rightSpeed = 125;
 
 volatile int accelTime;
 
@@ -70,8 +70,11 @@ void setup(){
 //================================================================================================================
 void calcVelocity(){
   if(countTriggered){
+    countTriggered = false;
     velocityLeft = (leftCounter - lastLeft) / 0.1;
     velocityRight = (rightCounter - lastRight) / 0.1;
+    lastLeft = leftCounter;
+    lastRight = rightCounter;
     countTriggered = false;
     Serial.print(velocityLeft);
     Serial.print("  ");
@@ -104,9 +107,10 @@ void loop(){
     analogWrite(rightMotorF,0);
     analogWrite(rightMotorB,rightSpeed);
   }
-  Serial.print(leftCounter);
-  Serial.print("  ");
-  Serial.println(rightCounter);
+//  Serial.print(leftCounter);
+//  Serial.print("  ");
+//  Serial.println(rightCounter);
+    calcVelocity();
 }
 //================================================================================================================
 float ticksToInches(long int ticks){ 
@@ -124,9 +128,9 @@ void leftTick(){
 //================================================================================================================
 void rightTick(){
   if (digitalRead(rightEncoderB) == HIGH){
-    rightCounter++;
+    rightCounter--;
   }
   else{
-    rightCounter--;
+    rightCounter++;
   }
 }

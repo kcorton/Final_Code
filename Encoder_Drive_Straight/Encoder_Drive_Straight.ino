@@ -81,13 +81,17 @@ void loop(){
     analogWrite(leftMotorB,leftSpeed);
   }
   if(rightSpeed >= 0){
-    analogWrite(rig htMotorF,rightSpeed);
+    analogWrite(rightMotorF,rightSpeed);
     analogWrite(rightMotorB,0);
   }
   else{
     analogWrite(rightMotorF,0);
     analogWrite(rightMotorB,rightSpeed);
   }
+  
+  Serial.print(leftCounter);
+  Serial.print("  ");
+  Serial.println(rightCounter);
 
   //proportionalDrive(leftCounter,rightCounter,leftDist,rightDist);
 }
@@ -121,22 +125,22 @@ float ticksToInches(long int ticks){
 //================================================================================================================
 void leftTick(){
   if (digitalRead(leftEncoderB) == HIGH){
-    leftCounter--; 
+    leftCounter++; 
     leftCounterTemp--;
   }
   else{
-    leftCounter++;
+    leftCounter--;
     leftCounterTemp++; 
   }
 }
 //================================================================================================================
 void rightTick(){
   if (digitalRead(rightEncoderB) == HIGH){
-    rightCounter++;
+    rightCounter--;
     rightCounterTemp++; 
   }
   else{
-    rightCounter--;
+    rightCounter++;
     rightCounterTemp--; 
   }
 }
