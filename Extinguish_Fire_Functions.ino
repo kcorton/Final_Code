@@ -8,7 +8,7 @@ void scan(void) {
 
   int currFlameVal;
 
-  if(countTime - lastFireTimeCount > 28) {
+  if(countTime - lastFireTimeCount > 1) {
 
     if(fireServoPos > 180) {
 
@@ -39,7 +39,7 @@ void scan(void) {
 
       }
 
-      fireServoPos += 10;
+      fireServoPos += 5;
 
     }
 
@@ -55,12 +55,12 @@ void scan(void) {
 
 void turnTowardFlame(void){
   if (firePosition > 90){
-    candleTurn = -(firePosition - 90);
+    candleTurn = (firePosition - 90);
     turn(candleTurn);
     
   }
   else if (firePosition < 90){
-    candleTurn = (90 -firePosition);
+    candleTurn = -(90 -firePosition);
     turn(candleTurn);
   }
   else {
@@ -88,7 +88,7 @@ void driveToCandle(void) {
 
     if(turnComplete){
       turnComplete = false;
-      extState = drivingForTime;
+      driveToCandleState = drivingForTime;
       initTimeCandleDrive = countTime;
     }
 
@@ -130,7 +130,7 @@ void activateFan(void) {
   armTimePassed = countTime - armInitTime;
   switch(armState){
   case raisingArm:
-    armMotor.write(108);
+    armMotor.write(122);
     if(analogRead(armPotPin) > highPos){
       armState = reachedTop;
     }

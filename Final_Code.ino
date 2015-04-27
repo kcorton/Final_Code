@@ -30,6 +30,7 @@
 #define firePin A1
 #define fireServoPin 11
 #define cliffSensorPin A2
+#define ledArrayPin 23
 
 // Main State machine States
 #define findingFire 0
@@ -104,7 +105,7 @@
 #define yCol 1
 
 // Pre-defined Values and Distances
-#define candleDist 1 // the distance away from the candle when the robot will stop
+#define candleDist 3 // the distance away from the candle when the robot will stop
 #define frontWallDist 5  // the distance from the front wall when the robot should stop
 #define desiredDist 4  //the desired distance between the robot and the wall
 #define closeWallDist 6  // if a wall is within this value there is a close wall it should follow
@@ -234,7 +235,10 @@ volatile long rightCounter = 0;
 volatile long leftCounter = 0;
 
 void setup(){
-
+  // setup LED array
+  pinMode(ledArrayPin,OUTPUT);
+  digitalWrite(ledArrayPin,HIGH);
+  
   // setup Fan 
   pinMode(fanPin, OUTPUT);
   digitalWrite(fanPin,LOW);
@@ -453,10 +457,11 @@ void findFire(void) {
 //Extinguish Fire Switch Statement
 
 void extinguishFire(void){
+  digitalWrite(ledArrayPin,LOW);
   switch (extState) {
     case initialScanning:
     scan();
-
+    stopAllDrive();
     if(scanComplete) {
       extState = drivingToCandle;
       scanComplete = false; 
@@ -467,6 +472,7 @@ void extinguishFire(void){
     driveToCandle();
 
     if(checkFrontDis(candleDist)){
+      stopAllDrive();
       extState = activatingFan;
       armState = raisingArm;
     }
@@ -507,7 +513,7 @@ void extinguishFire(void){
 // Return Home Switch Statement
 
 void returnHome(void) {
-
+  digitalWrite(ledArrayPin,HIGH);
   switch (rtnState) {
   case gettingToWallTurning180: 
     turn(pullAUiey);

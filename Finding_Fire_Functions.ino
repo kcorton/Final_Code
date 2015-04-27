@@ -52,11 +52,10 @@ void lookForFire(void) {
 
 
     /* If the flame is found */
-    if(flameVal < 200) {
+    if(flameVal < 300) {
       /* Change to extiguish fire state */
       mainState = extinguishingFire;
       stopAllDrive();
-      delay(5000);
       fireServoPos = 0; // reset the position
       lastFlameVal = 2000; // reset the last flame val
       flameServo.write(0); // write the servo back to reset position
