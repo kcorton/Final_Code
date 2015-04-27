@@ -31,7 +31,8 @@ void loop() {
       if (digitalRead(11) == LOW) {
         state = 1;
       }
-      spin();
+      //spin();
+      backAndForth();
       break;
 
     case 1:
