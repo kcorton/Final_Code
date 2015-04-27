@@ -25,37 +25,27 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(11) == HIGH) {
-    state = 2;
-  }
+
   switch (state) {
     case 0:
-      if (timesThroughSpin <= 3) {
-        spin();
-        timesThroughSpin++;
-      }
-      else {
+      if (digitalRead(11) == LOW) {
         state = 1;
-        timesThroughSpin = 0;
       }
+      spin();
       break;
 
     case 1:
-      if (timesThroughFlash <= 3) {
-        flash();
-        timesThroughFlash++;
-      }
-      else {
+      if (digitalRead(11) == HIGH) {
         state = 0;
-        timesThroughFlash = 0;
       }
+      flash();
       break;
 
-    case 2:
-      allOff();
-      if (digitalRead(11) == LOW) {
-        state = 0;
-      }
+      //    case 2:
+      //      allOff();
+      //      if (digitalRead(11) == LOW) {
+      //        state = 0;
+      //      }
   }
 }
 
@@ -69,18 +59,43 @@ void spin() {
 
 void flash() {
   for (int pin = 1; pin <= 10; pin++) {
-    digitalWrite(pin, HIGH);
+    if(pin % 2) {
+      digitalWrite(pin, HIGH);
+    }
+    else {
+      digitalWrite(pin, LOW);
+    }
   }
   delay(100);
   for (int pin = 1; pin <= 10; pin++) {
-    digitalWrite(pin, LOW);
+    if(pin % 2) {
+      digitalWrite(pin, LOW);
+    }
+    else {
+      digitalWrite(pin, HIGH);
+    }
   }
-  delay(100);
+  delay(100); 
 }
 
-void allOff() {
+void backAndForth() {
   for (int pin = 1; pin <= 10; pin++) {
+    digitalWrite(pin, HIGH);
+    delay(50);
     digitalWrite(pin, LOW);
   }
+  for (int pin = 10; pin >= 1; pin--) {
+    digitalWrite(pin, HIGH);
+    delay(50);
+    digitalWrite(pin, LOW);
+  }
+  
 }
+  
+
+//void allOff() {
+//  for (int pin = 1; pin <= 10; pin++) {
+//    digitalWrite(pin, LOW);
+//  }
+//}
 
