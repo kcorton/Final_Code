@@ -83,7 +83,7 @@ void turn(int turnDeg){
       }
     }
 
-    Serial.println(totalDegrees);
+//    Serial.println(totalDegrees);
 
     lastTurnTime = millis();
     lastTurnCount = countTime;

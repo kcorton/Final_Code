@@ -42,6 +42,7 @@ boolean checkSideDisGreater(int desDis){
   if(mainState == returningHome){
     if (getDis(backSonar) >= desDis) { 
       stopAllDrive();
+      Serial.println("FIRST STOP DRIVE");
       return true; 
     }
 
