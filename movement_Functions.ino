@@ -49,7 +49,7 @@ void turn(int turnDeg){
           // do nothing for now
         }
         else if (mainState = extinguishingFire) { 
-          // do nothing for now
+          turnStateMachine(turnDeg);
         }
       }
     }

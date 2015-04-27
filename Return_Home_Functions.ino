@@ -17,26 +17,6 @@ void getCoordinates(void) {
 
 }
 
-
-/*********************************************************************************************/
-// Drive To Next Coor function
-
-// drives to next Coordinate, if there is a wall, keeping itself next to the wall, if no wall exists just uses encoders
-
-void driveToNextCoor(void) {
-
-  // if the sonar sees a close wall
-  if(checkSideDisLess(closeWallDist)){
-    followWall();
-  }
-
-  // if sensor sees no close wall 
-  else {
-    driveStraightForwardEnc();
-  }
-
-}
-
 /*********************************************************************************************/
 // Return Homoe Init Direction FUnction 
 // sets the initial driving direction when robot is returning home and has found the wall again 
@@ -62,11 +42,14 @@ void returnHomeInitDirection(void){
 // Drives a given distance using encoders and maybe a wall if we have it
 
 void driveHome(void){
+  int disToDrive; 
+  disToDrive = xCoord; 
+  
+  driveStraightDesDis(disToDrive);
+  
+  if(disTravComplete) {
+    homeIsReached = true;
+  }
   
 }
 
-/*********************************************************************************************/
-// calculate Distance To Drive
-// when the next coordinate is home this calculates how far the robot needs to drive
-void calculateDistanceToDirve(void){
-}

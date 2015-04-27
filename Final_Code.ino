@@ -83,8 +83,9 @@
 #define turningOnce 3
 #define gettingCoordinates 4
 #define drivingToCoordinate 5
-#define determiningDriveDirrection 6
-#define drivingToHome 7
+#define DrivingToTurnAboutWall 6
+#define determiningDriveDirrection 7
+#define drivingToHome 8
 
 //Fan Sweep State Machine
 #define armUp 0
@@ -534,6 +535,9 @@ void extinguishFire(void){
 // Return Home Switch Statement
 
 void returnHome(void) {
+  
+  checkForCliff();
+  
   digitalWrite(ledArrayPin,HIGH);
   switch (rtnState) {
   case gettingToWallTurning180: 
@@ -581,24 +585,37 @@ void returnHome(void) {
 
     //else if the next coordinat is our home location
     else { 
-      calculateDistanceToDirve();
       rtnState = drivingToHome;
     }
     break;
   case drivingToCoordinate:
-    driveToNextCoor(); 
+    followWall(); 
 
     if(checkFrontDis(frontWallDist)){
       stopAllDrive();
-      updateLocation();
-      rtnState = gettingCoordinates;
+      rtnState = determiningDriveDirrection;
     }
+    if(checkSideDisGreater(closeWallDist)){
+      stopAllDrive();
+      rtnState = DrivingToTurnAboutWall; 
+    }
+      
     break;   
+  case DrivingToTurnAboutWall: 
+    driveStraightDesDis(forwardDisToTurnAboutWall);
+    if(disTravComplete) {
+      firstTimeThrough = true;
+      rtnState = determiningDriveDirrection;
+      disTravComplete = false;
+    }
+    break;
   case determiningDriveDirrection:
     turn(ninetyDeg);
 
     if(turnComplete){
       turnComplete = false;
+      xCoord = nextXCoord;  // we have reached the next coordinates
+      yCoord = nextYCoord;  // we have reached the next coordinates
       rtnState = gettingCoordinates;
     }
     break;
