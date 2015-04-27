@@ -18,7 +18,7 @@
 #define backEchoPin 26
 #define fanPin 22
 #define armMotorPin 4
-#define armPotPin A4
+#define armPotPin A3
 #define leftMotorF 10
 #define leftMotorB 9
 #define leftEncoderB 8
@@ -83,13 +83,8 @@
 #define drivingToCoordinate 4
 
 //Fan Sweep State Machine
-#define armToMid 0
-#define armAtMid 1
-#define waitingAtMid 2
-#define armToTop 3
-#define reachedTop 4
-#define waitingAtTop 5
-#define loweringArm 6
+#define armUp 0
+#define armDown 1
 
 //Turning State Machine 
 #define xPos 0
@@ -136,9 +131,10 @@ Servo flameServo;
 //int lowPos = 320;
 //long initTime = 0;
 int armWrite, armPos;
-#define kp 1
-#define kd 0.5
-#define ki .01
+volatile int pidOut;
+#define Kp 2
+#define Kd 1
+#define Ki 0
 
 //Variable for Driving To Candle
 long initTimeCandleDrive = 0;
@@ -482,8 +478,7 @@ void extinguishFire(void){
     if(checkFrontDis(candleDist)){
       stopAllDrive();
       extState = activatingFan;
-      armState = armToMid;
-      armInitTime = countTime;
+      armState = armUp;
     }
     break;
   case activatingFan:
@@ -492,7 +487,6 @@ void extinguishFire(void){
     if(fanSweepComplete){ 
       extState = checkingFlame;
       fanSweepComplete = false;
-      armInitTime = countTime;
     }
 
     break;

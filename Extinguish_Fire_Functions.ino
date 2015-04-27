@@ -17,8 +17,8 @@ void scan(void) {
     flameServo.write(0); // write the servo back to reset position
     scanComplete = true; //Indicate the scan is complete
 
-      Serial.println("DONEEEEE");
-    Serial.println(firePosition);
+      //Serial.println("DONEEEEE");
+    //Serial.println(firePosition);
 
   }
 
@@ -27,10 +27,10 @@ void scan(void) {
     flameServo.write(fireServoPos);
     currFlameVal = analogRead(firePin);
 
-    Serial.print("Position ");
-    Serial.print(fireServoPos);
-    Serial.print("Flame Value ");
-    Serial.println(currFlameVal);
+    //Serial.print("Position ");
+    //Serial.print(fireServoPos);
+    //Serial.print("Flame Value ");
+    //Serial.println(currFlameVal);
 
     if(currFlameVal < lastFlameVal) {
 
@@ -124,23 +124,26 @@ void driveToCandle(void) {
 // Sweeps Fan between it's two extreme postions and checks if the fire is still detected 
 
 void activateFan(void) {
+ digitalWrite(fanPin, HIGH);
  armPos = analogRead(armPotPin);
   switch (armState) {
     case armUp:
-      armWrite = 450;
-      if (armPos == armWrite) {
+      armWrite = 410;
+      if (armPos >= armWrite) {
         armState = armDown;
       }
       break;
 
     case armDown:
-      armWrite = 320;
-      if (armPos == armWrite) {
+      armWrite = 310;
+      if (armPos <= armWrite) {
         armState = armUp;
+        fanSweepComplete = true;
       }
-      break
+      break;
   }
-  armMotor.write(calcArmPID());
+  armMotor.write(pidOut);
+  Serial.println(armPos);
   
 //  // run fan between two extremes 
 //  digitalWrite(fanPin, HIGH);
@@ -195,19 +198,19 @@ void activateFan(void) {
 //  }
 }
 
-int calcArmPID() {
-  int pidOut;
-  int integral += armPos;
+void calcArmPID() {
+  
+  int integral;
+  integral += armPos;
   int lastPos = armPos;
   armPos = analogRead(armPotPin);
-  int pidRaw = Kp * (armWrite - armPos) + Kd * (lastPos - armPos) + Ki * integral;
+  int pidRaw = (float)Kp * (armWrite - armPos) + (float)Kd * (lastPos - armPos) + (float)Ki * integral;
   if (pidRaw < 0) {
-    pidOut = map(pidRaw, 0, 90, -1000, 0);
+    pidOut = map(pidRaw, 0, 90, -2000, 0);
   }
   else {
-    pidOut = map(pidRaw, 90, 180, 0, 1000);
+    pidOut = map(pidRaw, 90, 180, 0, 2000);
   }
-  return pidOut;
 }
 
 

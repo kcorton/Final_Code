@@ -30,6 +30,9 @@ void timerISR(){
   if (accelTime < 1){
     accelTime += .05;                             
   }
+  if(extState == activatingFan){
+    calcArmPID();
+  }
 }
 
 //========================================================
