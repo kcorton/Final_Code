@@ -32,6 +32,8 @@
 #define cliffSensorPin A2
 #define ledArrayPin 23
 #define startButtonPin 24
+#define upperSwitchPin A5
+#define lowerSwitchPin A6
 
 // Main State machine States
 #define findingFire 0
@@ -85,11 +87,16 @@
 #define drivingToCoordinate 5
 #define DrivingToTurnAboutWall 6
 #define determiningDriveDirrection 7
-#define drivingToHome 8
+#define determiningDriveDirrection2 8
+#define drivingToHome 9
+#define seeingCliffReturning 10
 
 //Fan Sweep State Machine
 #define armUp 0
 #define armDown 1
+#define drivingUp 0
+#define waitingAtTop 1
+#define drivingDown 2
 
 //Turning State Machine 
 #define xPos 0
@@ -107,7 +114,7 @@
 #define yCol 1
 
 // Pre-defined Values and Distances
-#define candleDist 3 // the distance away from the candle when the robot will stop
+#define candleDist 4 // the distance away from the candle when the robot will stop
 #define frontWallDist 5  // the distance from the front wall when the robot should stop
 #define desiredDist 4  //the desired distance between the robot and the wall
 #define closeWallDist 6  // if a wall is within this value there is a close wall it should follow
@@ -246,13 +253,10 @@ volatile long leftCounter = 0;
 
 //added by Kevin ----------------------------------------Karen----------------------------you may want to put these elsewhere. I didnt want to screw up the organization
 boolean usePID = false; //if 1, the fan arm uses PID to drive. If 0, uses limit switches.
-#define upperSwitchPin A5
-#define lowerSwitchPin A6
-#define drivingUp 0
-#define waitingAtTop 1
-#define drivingDown 2
+
+
 int armStateSwitches = drivingUp;
-int armRaiseSpeed = 105;
+int armRaiseSpeed = 110;
 int armHoldSpeed = 100;
 int armLowerSpeed = 92;
 int armMotorAdjust = 0;
@@ -263,11 +267,11 @@ boolean fireStillExists = false;
 
 /*********************************************************************************************/
 void setup(){
-  
+
   // setup limit switch pins
   pinMode(upperSwitchPin, INPUT_PULLUP);
   pinMode(lowerSwitchPin, INPUT_PULLUP);
-  
+
   // setup LED array
   pinMode(ledArrayPin,OUTPUT);
   digitalWrite(ledArrayPin,HIGH);
@@ -304,7 +308,7 @@ void setup(){
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
   Timer1.attachInterrupt(timerISR);
-  
+
   //Sonar pin declarations
   pinMode(frontPingPin,OUTPUT);
   pinMode(frontEchoPin,INPUT);
@@ -312,21 +316,21 @@ void setup(){
   pinMode(sideEchoPin,INPUT);
   pinMode(backPingPin,OUTPUT);
   pinMode(backEchoPin,INPUT);
-  
+
   //Ensures all Soonar pin pins are initialized to low
   digitalWrite(frontPingPin,LOW);
   digitalWrite(sidePingPin,LOW);
   digitalWrite(backPingPin,LOW);
-  
+
   //Motor pin declarations
   pinMode(leftMotorF, OUTPUT);
   pinMode(leftMotorB, OUTPUT);
   pinMode(rightMotorF, OUTPUT);
   pinMode(rightMotorB, OUTPUT);
-  
+
   //Start Button initialization
   pinMode(startButtonPin, INPUT_PULLUP);
-  
+
   // I2C initialization
   Wire.begin();
   Serial.println("gyroStart");
@@ -344,19 +348,19 @@ void setup(){
   calcGyroOffset();
 
   Serial.println("gyroFinish");
-  
+
   //Encoder interrupt initialization
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);
-  
+
   //Sonar interrupt initialization
   attachInterrupt(5,frontSonarISR,CHANGE); 
-//  attachInterrupt(4,sideSonarISR,CHANGE);  
-  
+  //  attachInterrupt(4,sideSonarISR,CHANGE);  
+
   // set up interrups for drive Motors
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);  
-  
+
   while(digitalRead(startButtonPin) == HIGH){
     //waiting for button
   }
@@ -365,7 +369,7 @@ void setup(){
 /*********************************************************************************************/
 
 void loop() {
-  
+
   Serial.println();
   //  lcd.setCursor(0,0);
   //  lcd.print(mainState);
@@ -373,20 +377,20 @@ void loop() {
   //Serial.println("beginLoop");
 
   //Serial.println(millis());
-//  Serial.print(pingNext);
-//  Serial.print("  ");
-//  pingNext = frontSonar;
-//  Serial.print(getDis(frontSonar));
-//  Serial.print("  ");
-//  Serial.print(getDis(sideSonar));
-//  Serial.print("  ");
-//  Serial.print(getDis(backSonar));
-//  Serial.print("  ");
-//  Serial.print(mazeState);
-//  Serial.print("  ");
+  //  Serial.print(pingNext);
+  //  Serial.print("  ");
+  //  pingNext = frontSonar;
+    Serial.print(getDis(frontSonar));
+    Serial.print("  ");
+    Serial.print(getDis(sideSonar));
+    Serial.print("  ");
+    Serial.print(getDis(backSonar));
+    Serial.print("  ");
+    Serial.print(mainState);
+    Serial.print("  ");
 
   ping(pingNext); // continually pings the sonars being used to update their values
-  
+
   switch (mainState) {
   case findingFire: // navigating the maze looking for the fire
     findFire();
@@ -423,28 +427,28 @@ void findFire(void) {
     checkForCliff();
   }
 
-//  Serial.print(mazeState);
-//  Serial.print("  ");
-  
+  //  Serial.print(mazeState);
+  //  Serial.print("  ");
+
   switch (mazeState) {
-  case followingWall:  //
-   // Serial.println("followWall");
+  case followingWall:  
+    // Serial.println("followWall");
     followWall();
 
     if(checkFrontDis(frontWallDist)){
-     // Serial.println("seeingWallFront");
+      // Serial.println("seeingWallFront");
       mazeState = seeingWallFront;
     }
 
     if(checkSideDisGreater(closeWallDist)){ 
-     // Serial.println("loosingWall");
+      // Serial.println("loosingWall");
       mazeState = loosingWall;
       tempTimer = countTime;
     }
 
     break;
   case seeingWallFront:
-  //  Serial.println("turningBCFront");
+    //  Serial.println("turningBCFront");
     seeWallFront();
 
     if(turnComplete){
@@ -455,7 +459,7 @@ void findFire(void) {
 
     break;
   case loosingWall:
- //   Serial.println("lostWall");
+    //   Serial.println("lostWall");
     lostWall();
 
     if((lostWallState != lostWallStopping) && (lostWallState != lostWallKeepDrivingStraight)){
@@ -519,10 +523,13 @@ void extinguishFire(void){
   case drivingToCandle: 
     driveToCandle();
 
-    if(checkFrontDis(candleDist)){
-      stopAllDrive();
-      extState = activatingFan;
-      armState = armUp;
+    if((driveToCandleState != scanning) && (driveToCandleState != turningToCandle)){
+
+      if(checkFrontDis(candleDist)){
+        stopAllDrive();
+        extState = activatingFan;
+        armState = armUp;
+      }
     }
     break;
   case activatingFan:
@@ -543,14 +550,15 @@ void extinguishFire(void){
   case checkingFlame: 
     scan();
     if(scanComplete){
+      scanComplete = false;
+
       if(fireStillExists) { 
-        extState = activatingFan; 
+        extState = drivingToCandle;
       }
-  
+
       else {
         extState = flameIsOut;
       }
-      scanComplete = false;
     }
     break; 
   case flameIsOut: 
@@ -569,9 +577,9 @@ void extinguishFire(void){
 // Return Home Switch Statement
 
 void returnHome(void) {
-  
+
   checkForCliff();
-  
+
   digitalWrite(ledArrayPin,HIGH);
   switch (rtnState) {
   case gettingToWallTurning180: 
@@ -588,11 +596,10 @@ void returnHome(void) {
       rtnState = straighteningRobot;
       tempTimer = countTime;
     }
-    if(checkFrontDis(frontWallDist)){
-      
-        stopAllDrive();
-        rtnState = turningOnce;
-      }
+    if(checkFrontDis(frontWallDist)){ 
+      stopAllDrive();
+      rtnState = turningOnce;
+    }
     break;  
   case straighteningRobot:
     followWall();
@@ -602,19 +609,19 @@ void returnHome(void) {
       returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
     }
     break;
-    
+
   case turningOnce:
-  turn(ninetyDeg);
-  
-  if(turnComplete){
-    rtnState = gettingCoordinates;
-    returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
-  }
+    turn(ninetyDeg);
+
+    if(turnComplete){
+      rtnState = gettingCoordinates;
+      returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
+    }
   case gettingCoordinates:
     getCoordinates();
 
     if(currentArrayRow != 0){ 
-    rtnState = drivingToCoordinate;
+      rtnState = drivingToCoordinate;
     }
 
     //else if the next coordinat is our home location
@@ -633,13 +640,13 @@ void returnHome(void) {
       stopAllDrive();
       rtnState = DrivingToTurnAboutWall; 
     }
-      
+
     break;   
   case DrivingToTurnAboutWall: 
     driveStraightDesDis(forwardDisToTurnAboutWall);
     if(disTravComplete) {
       firstTimeThrough = true;
-      rtnState = determiningDriveDirrection;
+      rtnState = determiningDriveDirrection2;
       disTravComplete = false;
     }
     break;
@@ -653,12 +660,25 @@ void returnHome(void) {
       rtnState = gettingCoordinates;
     }
     break;
+
+  case determiningDriveDirrection2:
+    turn(negNinetyDeg);
+
+    if(turnComplete){
+      turnComplete = false;
+      xCoord = nextXCoord;  // we have reached the next coordinates
+      yCoord = nextYCoord;  // we have reached the next coordinates
+      rtnState = gettingCoordinates;
+    }
+    break;
   case drivingToHome:
     driveHome();
     if(homeIsReached){
       mainState = madeItHome;
     }
-  
+  case seeingCliffReturning:
+    seenCliff();  
+    break;  
   default:
     Serial.println("HIT RETURN HOME DEFAULT");
     lcd.println("ERROR 03");
@@ -686,6 +706,8 @@ void calcGyroOffset(void) {
   //Serial.println(offset);
 
 }
+
+
 
 
 
