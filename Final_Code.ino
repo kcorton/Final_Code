@@ -244,10 +244,29 @@ volatile long countTime = 0;
 volatile long rightCounter = 0;
 volatile long leftCounter = 0;
 
-//added by Kevin while trying to fix the sonar
-long pingTime = 0;
+//added by Kevin ----------------------------------------Karen----------------------------you may want to put these elsewhere. I didnt want to screw up the organization
+boolean usePID = false; //if 1, the fan arm uses PID to drive. If 0, uses limit switches.
+#define upperSwitchPin A5
+#define lowerSwitchPin A6
+#define drivingUp 0
+#define waitingAtTop 1
+#define drivingDown 2
+int armStateSwitches = drivingUp;
+int armRaiseSpeed = 105;
+int armHoldSpeed = 100;
+int armLowerSpeed = 92;
+int armMotorAdjust = 0;
+long initUpTime = 0;
+long initDownTime = 0;
+long armUpTime = 4000;
 
+/*********************************************************************************************/
 void setup(){
+  
+  // setup limit switch pins
+  pinMode(upperSwitchPin, INPUT_PULLUP);
+  pinMode(lowerSwitchPin, INPUT_PULLUP);
+  
   // setup LED array
   pinMode(ledArrayPin,OUTPUT);
   digitalWrite(ledArrayPin,HIGH);
@@ -342,7 +361,7 @@ void setup(){
   }
 }
 
-
+/*********************************************************************************************/
 
 void loop() {
   
@@ -356,14 +375,14 @@ void loop() {
 //  Serial.print(pingNext);
 //  Serial.print("  ");
 //  pingNext = frontSonar;
-  Serial.print(getDis(frontSonar));
-  Serial.print("  ");
-  Serial.print(getDis(sideSonar));
-  Serial.print("  ");
-  Serial.print(getDis(backSonar));
-  Serial.print("  ");
-  Serial.print(mazeState);
-  Serial.print("  ");
+//  Serial.print(getDis(frontSonar));
+//  Serial.print("  ");
+//  Serial.print(getDis(sideSonar));
+//  Serial.print("  ");
+//  Serial.print(getDis(backSonar));
+//  Serial.print("  ");
+//  Serial.print(mazeState);
+//  Serial.print("  ");
 
   ping(pingNext); // continually pings the sonars being used to update their values
   
@@ -506,7 +525,12 @@ void extinguishFire(void){
     }
     break;
   case activatingFan:
-    activateFan();
+    if(usePID){
+      activateFanPID();
+    }
+    else{
+      activateFanSwitches();  
+    }
 
     if(fanSweepComplete){ 
       extState = checkingFlame;

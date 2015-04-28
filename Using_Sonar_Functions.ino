@@ -141,7 +141,7 @@ void ping(int sensorToPing){
     digitalWrite(pingPin,HIGH);
     delayMicroseconds(250);
     digitalWrite(pingPin,LOW); 
-    pingTime = millis();
+//    pingTime = millis();
     
     if(sensorToPing == sideSonar){
       sideEchoTime = pulseIn(sideEchoPin,HIGH);

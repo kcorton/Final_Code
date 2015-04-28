@@ -123,83 +123,83 @@ void driveToCandle(void) {
 
 // Sweeps Fan between it's two extreme postions and checks if the fire is still detected 
 
-void activateFan(void) {
- digitalWrite(fanPin, HIGH);
- armPos = analogRead(armPotPin);
+void activateFanPID(void) {
+  digitalWrite(fanPin, HIGH);
+  armPos = analogRead(armPotPin);
   switch (armState) {
-    case armUp:
-      armWrite = 410;
-      if (armPos >= armWrite) {
-        armState = armDown;
-      }
-      break;
+  case armUp:
+    armWrite = 410;
+    if (armPos >= armWrite) {
+      armState = armDown;
+    }
+    break;
 
-    case armDown:
-      armWrite = 310;
-      if (armPos <= armWrite) {
-        armState = armUp;
-        fanSweepComplete = true;
-      }
-      break;
+  case armDown:
+    armWrite = 310;
+    if (armPos <= armWrite) {
+      armState = armUp;
+      fanSweepComplete = true;
+    }
+    break;
   }
   armMotor.write(pidOut);
   //Serial.println(armPos);
-  
-//  // run fan between two extremes 
-//  digitalWrite(fanPin, HIGH);
-//  armTimePassed = countTime - armInitTime;
-//  switch(armState){
-//  case armToMid:
-//    armMotor.write(108);
-//    if(analogRead(armPotPin) > midPos){
-//      armState = armAtMid;
-//    }
-//    break;
-//  case armAtMid:
-//    initTime = countTime;
-//    armState = waitingAtMid;
-//    break;
-//  case waitingAtMid:
-//    armMotor.write(100);
-//    if((armTimePassed - initTime) > armWaitTime){
-//      armState = armToTop;
-//    }
-//    break;
-//  case armToTop:
-//    armMotor.write(108);
-//    if(analogRead(armPotPin) > highPos){
-//      armState = reachedTop;
-//    }
-//    break;
-//  case reachedTop:
-//    initTime = countTime;
-//    armState = waitingAtTop;
-//    break;
-//  case waitingAtTop: 
-//    armMotor.write(100);
-//    if((armTimePassed-initTime) > armWaitTime){
-//      armState = loweringArm;
-//    }
-//    break;
-//  case loweringArm:
-//    armMotor.write(93);
-//    if (analogRead(armPotPin) <=  lowPos){
-//      armMotor.write(90);
-//      digitalWrite(fanPin, LOW);
-//      fanSweepComplete = true;
-//    }
-//    break;
-//
-//  default:
-//    Serial.println("HIT ACTIVATE FAN DEFAULT");
-//    lcd.println("ERROR 06");
-//    delay(5000);
-//    break;
-//  }
-}
 
+  //  // run fan between two extremes 
+  //  digitalWrite(fanPin, HIGH);
+  //  armTimePassed = countTime - armInitTime;
+  //  switch(armState){
+  //  case armToMid:
+  //    armMotor.write(108);
+  //    if(analogRead(armPotPin) > midPos){
+  //      armState = armAtMid;
+  //    }
+  //    break;
+  //  case armAtMid:
+  //    initTime = countTime;
+  //    armState = waitingAtMid;
+  //    break;
+  //  case waitingAtMid:
+  //    armMotor.write(100);
+  //    if((armTimePassed - initTime) > armWaitTime){
+  //      armState = armToTop;
+  //    }
+  //    break;
+  //  case armToTop:
+  //    armMotor.write(108);
+  //    if(analogRead(armPotPin) > highPos){
+  //      armState = reachedTop;
+  //    }
+  //    break;
+  //  case reachedTop:
+  //    initTime = countTime;
+  //    armState = waitingAtTop;
+  //    break;
+  //  case waitingAtTop: 
+  //    armMotor.write(100);
+  //    if((armTimePassed-initTime) > armWaitTime){
+  //      armState = loweringArm;
+  //    }
+  //    break;
+  //  case loweringArm:
+  //    armMotor.write(93);
+  //    if (analogRead(armPotPin) <=  lowPos){
+  //      armMotor.write(90);
+  //      digitalWrite(fanPin, LOW);
+  //      fanSweepComplete = true;
+  //    }
+  //    break;
+  //
+  //  default:
+  //    Serial.println("HIT ACTIVATE FAN DEFAULT");
+  //    lcd.println("ERROR 06");
+  //    delay(5000);
+  //    break;
+  //  }
+}
+/*********************************************************************************************/
 void calcArmPID() {
-  
+
   int integral;
   integral += armPos;
   int lastPos = armPos;
@@ -214,6 +214,56 @@ void calcArmPID() {
 }
 
 
+/*********************************************************************************************/
+//drives the fan up until it reaches the limit switch, waits a set amount of time, then sends the fan down.
+void activateFanSwitches(void){
+  Serial.print(armStateSwitches);
+  Serial.print("  ");
+  Serial.print((int)digitalRead(lowerSwitchPin));
+  Serial.print("  ");
+  Serial.print((int)digitalRead(upperSwitchPin));
+  
+  digitalWrite(fanPin, HIGH);
+  switch(armStateSwitches){
+  case drivingUp:
+    armMotor.write(armRaiseSpeed); //raise the fan
+    if(digitalRead(upperSwitchPin) == LOW){
+      armMotor.write(armHoldSpeed); //hold the fan high
+      initUpTime = millis();  
+      armStateSwitches = waitingAtTop;
+    }
+    break;
+  case waitingAtTop:
+    if(digitalRead(upperSwitchPin) != LOW){
+      armMotorAdjust++;  
+    }
+    armMotor.write(armHoldSpeed + armMotorAdjust);
+    if((millis() - initUpTime) > armUpTime){
+      armStateSwitches = drivingDown;
+    }
+    break;
+  case drivingDown:
+    armMotor.write(armLowerSpeed);
+    if(digitalRead(lowerSwitchPin) == LOW){
+      if(initDownTime == 0) {    
+        initDownTime = millis();
+      }
+      else if((millis() - initDownTime) > armUpTime) {
+        fanSweepComplete = true;  
+        armMotorAdjust = 0;
+        initUpTime = 0;
+        initDownTime = 0;
+        armStateSwitches = drivingUp;
+      }
+    }
+    break;
+  default: 
+    Serial.println("Bran wants defaults");
+    lcd.print("Error 13");
+    delay(5000);
+    break;
+  }
+}
 /*********************************************************************************************/
 // Report Flame Function 
 
@@ -318,6 +368,7 @@ float candleChangeDisSin(void){
 
   return (sin((leftDist + rightDist) / 2)) ;  
 }
+
 
 
 
