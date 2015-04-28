@@ -541,13 +541,15 @@ void extinguishFire(void){
 
   case checkingFlame: 
     scan();
-
-    if(lastFlameVal < 300){ 
-    extState = activatingFan; 
-    }
-
-    else {
-      extState = flameIsOut;
+    if(scanComplete){
+      if(lastFlameVal < 500){ 
+        extState = activatingFan; 
+      }
+  
+      else {
+        extState = flameIsOut;
+      }
+      scanComplete = false;
     }
     break; 
   case flameIsOut: 
