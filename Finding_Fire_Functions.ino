@@ -57,11 +57,12 @@ void lookForFire(void) {
       mainState = extinguishingFire;
       setInitialFlameAngle();
       stopAllDrive();
+      updateLocation ();
       fireServoPos = 0; // reset the position
       lastFlameVal = 2000; // reset the last flame val
       flameServo.write(0); // write the servo back to reset position
       scanComplete = true; //Indicate the scan is complete
-      Serial.println("Fire Found");
+      //Serial.println("Fire Found");
     }
 
     lastFireTimeCount = countTime; // reset the stored time variable

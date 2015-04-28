@@ -223,11 +223,11 @@ void calcArmPID() {
 /*********************************************************************************************/
 //drives the fan up until it reaches the limit switch, waits a set amount of time, then sends the fan down.
 void activateFanSwitches(void){
-  Serial.print(armStateSwitches);
-  Serial.print("  ");
-  Serial.print((int)digitalRead(lowerSwitchPin));
-  Serial.print("  ");
-  Serial.print((int)digitalRead(upperSwitchPin));
+  //Serial.print(armStateSwitches);
+ // Serial.print("  ");
+ // Serial.print((int)digitalRead(lowerSwitchPin));
+ // Serial.print("  ");
+  //Serial.print((int)digitalRead(upperSwitchPin));
   
   digitalWrite(fanPin, HIGH);
   switch(armStateSwitches){
@@ -297,6 +297,9 @@ void reportFlame(void) {
 // this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
 
 void updateAngleDriveLocation(void){
+  
+  Serial.println(candleChangeDisCos());
+  Serial.println(candleChangeDisSin());
 
   if (drivingDirection == xPos){
     if (candleTurn > 0){
@@ -308,6 +311,7 @@ void updateAngleDriveLocation(void){
     else if(candleTurn < 0){
       xCoord = xCoord + candleChangeDisCos();
       yCoord = yCoord - candleChangeDisSin();
+      
     }
   }
   else if(drivingDirection == yPos) {
@@ -363,7 +367,7 @@ float candleChangeDisCos(void){
   leftDist = inchesPerTick * leftCounter;
   rightDist = inchesPerTick * rightCounter;
 
-  return (cos((leftDist + rightDist) / 2)) ; 
+  return ((leftDist + rightDist)/2) *(float)cos(flameAngle);
 }
 /*********************************************************************************************/
 
@@ -374,12 +378,14 @@ float candleChangeDisSin(void){
   leftDist = inchesPerTick * leftCounter;
   rightDist = inchesPerTick * rightCounter;
 
-  return (sin((leftDist + rightDist) / 2)) ;  
+  return ((leftDist + rightDist)/2) * (float)sin(flameAngle);  
+  
+  
 }
 /*********************************************************************************************/
 void adjustFlamePos(void){
-  xCoord = xCoord + 9 * cos(flameAngle);
-  yCoord = yCoord + 9 * sin(flameAngle);  
+  xCoord = xCoord + 9 * (float)cos(flameAngle);
+  yCoord = yCoord + 9 * (float)sin(flameAngle);  
 }
 
 

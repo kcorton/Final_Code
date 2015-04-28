@@ -214,8 +214,8 @@ int offset = 0;
 // Variables to keep track of where the robot is and has been
 float xCoord = 0; 
 float yCoord = 0; 
-int nextXCoord = 0; 
-int nextYCoord = 0; 
+float nextXCoord = 0; 
+float nextYCoord = 0; 
 int locationsArray[15][2] = {
   0};
 int currentArrayRow = 0;
