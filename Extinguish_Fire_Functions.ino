@@ -277,16 +277,17 @@ void activateFanSwitches(void){
 // reports the location of the flame 
 
 void reportFlame(void) {
-
   lcd.setCursor(0, 0);
+  lcd.print("Flame Found at:");
+  lcd.setCursor(0, 1);
   lcd.print("(");
-  lcd.setCursor(1, 0);
+  lcd.setCursor(1, 1);
   lcd.print((int)xCoord);
-  lcd.setCursor(4, 0);
+  lcd.setCursor(4, 1);
   lcd.print(", ");
-  lcd.setCursor(7, 0);
+  lcd.setCursor(7, 1);
   lcd.print((int)yCoord);
-  lcd.setCursor(10, 0);
+  lcd.setCursor(10, 1);
   lcd.print(")");
 }
 
@@ -374,6 +375,11 @@ float candleChangeDisSin(void){
   rightDist = inchesPerTick * rightCounter;
 
   return (sin((leftDist + rightDist) / 2)) ;  
+}
+/*********************************************************************************************/
+void adjustFlamePos(void){
+  xCoord = xCoord + 9 * cos(flameAngle);
+  yCoord = yCoord + 9 * sin(flameAngle);  
 }
 
 

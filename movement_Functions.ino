@@ -212,15 +212,15 @@ void followWall(void) {
   }
   
   else {
-    calcVelocity();
+  calcVelocity();
   //calculate sonar error
   distToWall = getDis(backSonar);
   wallError = desiredDist - distToWall;
   //calculate velocity error
   velocityError = getRightVeloc() - getLeftVeloc();
   //calculate speed based on the errors (proportional control)
-  leftSpeed = accelTime * (baseSpeed - (Kw * wallError) - (Kv * velocityError));
-  rightSpeed = accelTime * (baseSpeed + (Kw * wallError) + (Kv * velocityError));
+  leftSpeed = accelTime * (baseSpeed - (Kw * wallError) + (Kv * velocityError));
+  rightSpeed = accelTime * (baseSpeed + (Kw * wallError) - (Kv * velocityError));
   //set the motor speeds
   updateMotors();
   }

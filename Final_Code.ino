@@ -79,17 +79,18 @@
 #define updatingLocation 3
 
 //Return Home State Machine States
-#define gettingToWallTurning180 0
-#define gettingBackToWallDrive 1
-#define straighteningRobot 2
-#define turningOnce 3
-#define gettingCoordinates 4
-#define drivingToCoordinate 5
-#define DrivingToTurnAboutWall 6
-#define determiningDriveDirrection 7
-#define determiningDriveDirrection2 8
-#define drivingToHome 9
-#define seeingCliffReturning 10
+#define backUp 0
+#define gettingToWallTurning180 1
+#define gettingBackToWallDrive 2
+#define straighteningRobot 3
+#define turningOnce 4
+#define gettingCoordinates 5
+#define drivingToCoordinate 6
+#define DrivingToTurnAboutWall 7
+#define determiningDriveDirrection 8
+#define determiningDriveDirrection2 9
+#define drivingToHome 10
+#define seeingCliffReturning 11
 
 //Fan Sweep State Machine
 #define armUp 0
@@ -264,6 +265,8 @@ long initUpTime = 0;
 long initDownTime = 0;
 long armUpTime = 4000;
 boolean fireStillExists = false;
+int backFromFlame = -250;
+int flameAngle = 0;
 
 /*********************************************************************************************/
 void setup(){
@@ -386,7 +389,11 @@ void loop() {
     Serial.print("  ");
     Serial.print(getDis(backSonar));
     Serial.print("  ");
-    Serial.print(mainState);
+    Serial.print(rtnState);
+    Serial.print("  ");
+    Serial.print(xCoord);
+    Serial.print("  ");
+    Serial.print(yCoord);
     Serial.print("  ");
 
   ping(pingNext); // continually pings the sonars being used to update their values
@@ -516,6 +523,7 @@ void extinguishFire(void){
     stopAllDrive();
     if(scanComplete) {
       extState = drivingToCandle;
+      flameAngle += firePosition;
       scanComplete = false; 
     }
     break;
@@ -562,6 +570,7 @@ void extinguishFire(void){
     }
     break; 
   case flameIsOut: 
+    adjustFlamePos();
     reportFlame(); 
     mainState = returningHome;
     break; 
@@ -582,6 +591,13 @@ void returnHome(void) {
 
   digitalWrite(ledArrayPin,HIGH);
   switch (rtnState) {
+  case backUp:
+    driveStraightDesDis(backFromFlame);
+    if(disTravComplete){
+      disTravComplete = false;
+      rtnState = gettingToWallTurning180;
+    }
+    break;
   case gettingToWallTurning180: 
     turn(pullAUiey);
     if(turnComplete) {
@@ -596,7 +612,7 @@ void returnHome(void) {
       rtnState = straighteningRobot;
       tempTimer = countTime;
     }
-    if(checkFrontDis(frontWallDist)){ 
+    else if(checkFrontDis(frontWallDist)){ 
       stopAllDrive();
       rtnState = turningOnce;
     }

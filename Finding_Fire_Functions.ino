@@ -55,6 +55,7 @@ void lookForFire(void) {
     if(flameVal < 800) {
       /* Change to extiguish fire state */
       mainState = extinguishingFire;
+      setInitialFlameAngle();
       stopAllDrive();
       fireServoPos = 0; // reset the position
       lastFlameVal = 2000; // reset the last flame val
@@ -232,8 +233,23 @@ void checkForCliff(void){
 
   }
 }
-
-
+/*********************************************************************************************/
+void setInitialFlameAngle(void){
+  switch(drivingDirection){
+    case xPos:
+      flameAngle = 0;
+    break;
+    case xNeg:
+      flameAngle = 180;
+    break;
+    case yPos:
+      flameAngle = 90;
+    break;
+    case yNeg:
+      flameAngle = -90;
+    break;  
+  }
+}
 
 
 
