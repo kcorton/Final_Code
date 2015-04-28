@@ -23,7 +23,7 @@ void lookForFire(void) {
 
   if(countTime - lastFireTimeCount >= 1) {
 
-    Serial.println("lookForFire");
+    //Serial.println("lookForFire");
     /* Read current fire sensor value */
     flameVal = analogRead(firePin);
     //Serial.println(flameVal);
@@ -52,7 +52,7 @@ void lookForFire(void) {
 
 
     /* If the flame is found */
-    if(flameVal < 300) {
+    if(flameVal < 800) {
       /* Change to extiguish fire state */
       mainState = extinguishingFire;
       stopAllDrive();

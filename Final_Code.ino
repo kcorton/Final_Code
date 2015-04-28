@@ -14,7 +14,7 @@
 #define sidePingPin 28
 #define backPingPin 29
 #define frontEchoPin 18
-#define sideEchoPin 19
+#define sideEchoPin 25
 #define backEchoPin 26
 #define fanPin 22
 #define armMotorPin 4
@@ -31,7 +31,7 @@
 #define fireServoPin 11
 #define cliffSensorPin A2
 #define ledArrayPin 23
-#define startButtonPin 1
+#define startButtonPin 24
 
 // Main State machine States
 #define findingFire 0
@@ -244,6 +244,9 @@ volatile long countTime = 0;
 volatile long rightCounter = 0;
 volatile long leftCounter = 0;
 
+//added by Kevin while trying to fix the sonar
+long pingTime = 0;
+
 void setup(){
   // setup LED array
   pinMode(ledArrayPin,OUTPUT);
@@ -281,7 +284,7 @@ void setup(){
   // sets up timer used for arm Function
   Timer1.initialize(100000); // interrupt every .1s or 10 times every second
   Timer1.attachInterrupt(timerISR);
-
+  
   //Sonar pin declarations
   pinMode(frontPingPin,OUTPUT);
   pinMode(frontEchoPin,INPUT);
@@ -289,7 +292,12 @@ void setup(){
   pinMode(sideEchoPin,INPUT);
   pinMode(backPingPin,OUTPUT);
   pinMode(backEchoPin,INPUT);
-
+  
+  //Ensures all Soonar pin pins are initialized to low
+  digitalWrite(frontPingPin,LOW);
+  digitalWrite(sidePingPin,LOW);
+  digitalWrite(backPingPin,LOW);
+  
   //Motor pin declarations
   pinMode(leftMotorF, OUTPUT);
   pinMode(leftMotorB, OUTPUT);
@@ -316,44 +324,49 @@ void setup(){
   calcGyroOffset();
 
   Serial.println("gyroFinish");
-
+  
   //Encoder interrupt initialization
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);
-
+  
   //Sonar interrupt initialization
   attachInterrupt(5,frontSonarISR,CHANGE); 
-  attachInterrupt(4,sideSonarISR,CHANGE);  
-
-  //Ensures all Soonar pin pins are initialized to low
-  digitalWrite(frontPingPin,LOW);
-  digitalWrite(sidePingPin,LOW);
-  digitalWrite(backPingPin,LOW);
-
+//  attachInterrupt(4,sideSonarISR,CHANGE);  
+  
   // set up interrups for drive Motors
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);  
   
-  while(digitalRead(startButtonPin)){
+  while(digitalRead(startButtonPin) == HIGH){
     //waiting for button
   }
-
 }
 
 
 
 void loop() {
-
+  
+  Serial.println();
   //  lcd.setCursor(0,0);
   //  lcd.print(mainState);
 
   //Serial.println("beginLoop");
 
   //Serial.println(millis());
-
+//  Serial.print(pingNext);
+//  Serial.print("  ");
+//  pingNext = frontSonar;
+  Serial.print(getDis(frontSonar));
+  Serial.print("  ");
+  Serial.print(getDis(sideSonar));
+  Serial.print("  ");
+  Serial.print(getDis(backSonar));
+  Serial.print("  ");
+  Serial.print(mazeState);
+  Serial.print("  ");
 
   ping(pingNext); // continually pings the sonars being used to update their values
-
+  
   switch (mainState) {
   case findingFire: // navigating the maze looking for the fire
     findFire();
@@ -383,8 +396,6 @@ void findFire(void) {
 
   printPosition();
 
-  Serial.println(getDis(sideSonar));
-
   // rotates the fire sensor looking for a fire
   lookForFire();
   // checks the cliff detector for a cliff
@@ -392,7 +403,9 @@ void findFire(void) {
     checkForCliff();
   }
 
-
+//  Serial.print(mazeState);
+//  Serial.print("  ");
+  
   switch (mazeState) {
   case followingWall:  //
    // Serial.println("followWall");

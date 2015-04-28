@@ -57,7 +57,7 @@ void frontSonarISR(){
         }
       case returningHome:
         {
-          pingNext = sideSonar;
+          pingNext = backSonar;
           break;
         }
       case madeItHome:
@@ -80,48 +80,48 @@ void frontSonarISR(){
 
 }
 //========================================================
-void sideSonarISR(){
-  if(digitalRead(sideEchoPin) == HIGH){
-    sidePingTime = micros();
-  }
-  else{
-    tempEchoSide = micros() - sidePingTime;
-    if(tempEchoSide < 30000){
-      sideEchoTime = tempEchoSide;
-      switch(mainState){
-      case findingFire:
-        {
-          pingNext = frontSonar;
-          break;
-        }
-      case extinguishingFire:
-        {
-          pingNext = frontSonar;
-          break;
-        }
-      case returningHome:
-        {
-          pingNext = backSonar;
-          break;
-        }
-      case madeItHome:
-        {
-          pingNext = frontSonar;
-          break;
-        }
-      default:
-        Serial.println("SIDE SONAR ISR DEFAULT HIT");
-        lcd.println("ERROR");
-        delay(5000);
-        break;
-      }
-    }
-    else{
-      pingNext = sideSonar; 
-    }
-    waiting = false;
-  }
-}
+//void sideSonarISR(){
+//  if(digitalRead(sideEchoPin) == HIGH){
+//    sidePingTime = micros();
+//  }
+//  else{
+//    tempEchoSide = micros() - sidePingTime;
+//    if((tempEchoSide < 30000) && (tempEchoFront >=0)){
+//      sideEchoTime = tempEchoSide;
+//      switch(mainState){
+//      case findingFire:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      case extinguishingFire:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      case returningHome:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      case madeItHome:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      default:
+//        Serial.println("SIDE SONAR ISR DEFAULT HIT");
+//        lcd.println("ERROR");
+//        delay(5000);
+//        break;
+//      }
+//    }
+//    else{
+//      pingNext = sideSonar; 
+//    }
+//    waiting = false;
+//  }
+//}
 
 
 

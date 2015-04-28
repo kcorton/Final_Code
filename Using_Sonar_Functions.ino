@@ -96,9 +96,18 @@ float getDis(int sonarToRead){
 // Pings all the SOnar 
 
 void ping(int sensorToPing){
-
-
+//  Serial.print("outside");
+//  Serial.print("  ");
+//  if((millis() - pingTime) > 30000){
+//    Serial.print("reset");
+//    Serial.print("  ");
+//    waiting = false;  
+//  }
   if(!waiting){
+//    Serial.print("ping");
+//    Serial.print("  ");
+//    Serial.print(sensorToPing);
+//    Serial.print("  ");
     // Serial.println("ping");
     int pingPin;
     switch(sensorToPing){
@@ -123,7 +132,8 @@ void ping(int sensorToPing){
       delay(5000);
       break;
     }
-    // Serial.print(pingPin);
+//    Serial.print(pingPin);
+//    Serial.print("  ");
 
     delay(50);  //ensures a second ping is not sent out before 
     //the first returns
@@ -131,8 +141,34 @@ void ping(int sensorToPing){
     digitalWrite(pingPin,HIGH);
     delayMicroseconds(250);
     digitalWrite(pingPin,LOW); 
-
-    if(sensorToPing == backSonar){
+    pingTime = millis();
+    
+    if(sensorToPing == sideSonar){
+      sideEchoTime = pulseIn(sideEchoPin,HIGH);
+      switch(mainState){
+      case findingFire:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      case extinguishingFire:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      case returningHome:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      case madeItHome:
+        {
+          pingNext = frontSonar;
+          break;
+        }
+      }
+    }
+    else if(sensorToPing == backSonar){
       backEchoTime = pulseIn(backEchoPin,HIGH);
       switch(mainState){
       case findingFire:
@@ -147,7 +183,7 @@ void ping(int sensorToPing){
         }
       case returningHome:
         {
-          pingNext = sideSonar;
+          pingNext = frontSonar;
           break;
         }
       case madeItHome:
