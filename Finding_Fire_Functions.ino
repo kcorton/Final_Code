@@ -172,10 +172,19 @@ void seenCliff(void) {
   case seenCliffBackingUp:
     driveStraightDesDis(negBackFromCliffDist);
     if(disTravComplete) {
-      cliffState = SeenCliffTurningToStraight;
-      disTravComplete = false;
-      leftSpeed = baseSpeed;
-      rightSpeed = baseSpeed;
+      if(mainState != returningHome){
+        cliffState = SeenCliffTurningToStraight;
+        disTravComplete = false;
+        leftSpeed = baseSpeed;
+        rightSpeed = baseSpeed;
+      }
+      else {
+        cliffState = 0; 
+        rtnState = determiningDriveDirrection;
+        disTravComplete = false;
+        leftSpeed = baseSpeed;
+        rightSpeed = baseSpeed;
+      }
     }
     break;
   case SeenCliffTurningToStraight:
@@ -201,17 +210,29 @@ void seenCliff(void) {
 // checkForCliff
 // changes the state
 void checkForCliff(void){
+  if(mainState == findingFire){
 
-  if(digitalRead(cliffSensorPin) == HIGH){
-    Serial.println("cliff!!!");
-    lostWallState = 0;
-    stopAllDrive();
-    delay(500);
-    mazeState = seeingCliff;
-    cliffState = 0;
+    if(digitalRead(cliffSensorPin) == HIGH){
+      Serial.println("cliff!!!");
+      lostWallState = 0;
+      stopAllDrive();
+      delay(500);
+      mazeState = seeingCliff;
+      cliffState = 0;
+    }
   }
+  else if(mainState == returningHome){
+    if(digitalRead(cliffSensorPin) == HIGH){
+      Serial.println("cliff!!!");
+      stopAllDrive();
+      delay(500);
+      rtnState = seeingCliffReturning;
 
+    }
+
+  }
 }
+
 
 
 

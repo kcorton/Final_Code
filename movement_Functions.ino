@@ -48,7 +48,7 @@ void turn(int turnDeg){
         else if (mainState == extinguishingFire) {
           // do nothing for now
         }
-        else if (mainState = extinguishingFire) { 
+        else if (mainState == returningHome) { 
           turnStateMachine(turnDeg);
         }
       }
@@ -77,8 +77,8 @@ void turn(int turnDeg){
         else if (mainState == extinguishingFire) {
           // do nothing for now
         }
-        else if (mainState = extinguishingFire) { 
-          // do nothing for now
+        else if (mainState == returningHome) { 
+          turnStateMachine(turnDeg);
         }
       }
     }
@@ -195,6 +195,8 @@ void driveStraightBackwardsEnc(void) {
 // this functions keeps the robot straight using the encoders and keeps it a certain distance from the wall 
 
 void followWall(void) {
+  
+  if(mainState != returningHome){
 
   calcVelocity();
   //calculate sonar error
@@ -207,6 +209,21 @@ void followWall(void) {
   rightSpeed = accelTime * (baseSpeed - (Kw * wallError) - (Kv * velocityError));
   //set the motor speeds
   updateMotors();
+  }
+  
+  else {
+    calcVelocity();
+  //calculate sonar error
+  distToWall = getDis(backSonar);
+  wallError = desiredDist - distToWall;
+  //calculate velocity error
+  velocityError = getRightVeloc() - getLeftVeloc();
+  //calculate speed based on the errors (proportional control)
+  leftSpeed = accelTime * (baseSpeed - (Kw * wallError) - (Kv * velocityError));
+  rightSpeed = accelTime * (baseSpeed + (Kw * wallError) + (Kv * velocityError));
+  //set the motor speeds
+  updateMotors();
+  }
 
 }
 

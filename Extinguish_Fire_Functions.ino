@@ -16,6 +16,9 @@ void scan(void) {
     if(lastFlameVal < 800) {
       fireStillExists = true;
     }
+    else {
+      fireStillExists = false;
+    }
     lastFlameVal = 2000; // reset the last flame val
     flameServo.write(0); // write the servo back to reset position
     scanComplete = true; //Indicate the scan is complete
@@ -257,6 +260,7 @@ void activateFanSwitches(void){
         initUpTime = 0;
         initDownTime = 0;
         armStateSwitches = drivingUp;
+        digitalWrite(fanPin, LOW);
       }
     }
     break;

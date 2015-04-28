@@ -18,7 +18,7 @@ void getCoordinates(void) {
 }
 
 /*********************************************************************************************/
-// Return Homoe Init Direction FUnction 
+// Return Homoe Init Direction Function 
 // sets the initial driving direction when robot is returning home and has found the wall again 
 void returnHomeInitDirection(void){
   

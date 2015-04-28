@@ -21,13 +21,23 @@ boolean checkFrontDis(int desDis){
 // if the side distance sensors sees something less than a certain distance away the function is true
 
 boolean checkSideDisLess(int desDis){
+  if(mainState == returningHome){
+    if (getDis(backSonar) <= desDis) { 
+      return true; 
+    }
 
-  if (getDis(sideSonar) <= desDis) { 
-    return true; 
+    else { 
+      return false; 
+    }
   }
+  else{
+    if (getDis(sideSonar) <= desDis) { 
+      return true; 
+    }
 
-  else { 
-    return false; 
+    else { 
+      return false; 
+    }
   }
 
 }
