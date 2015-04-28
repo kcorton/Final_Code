@@ -118,7 +118,7 @@
 #define negNinetyDeg -90
 #define pullAUiey 180
 #define inchesPerTick .0066401062 
-#define turningSpeed 400
+#define turningSpeed 300
 #define wallProportionalVal 100
 
 //LCD setup
@@ -259,6 +259,7 @@ int armMotorAdjust = 0;
 long initUpTime = 0;
 long initDownTime = 0;
 long armUpTime = 4000;
+boolean fireStillExists = false;
 
 /*********************************************************************************************/
 void setup(){
@@ -542,7 +543,7 @@ void extinguishFire(void){
   case checkingFlame: 
     scan();
     if(scanComplete){
-      if(lastFlameVal < 500){ 
+      if(fireStillExists) { 
         extState = activatingFan; 
       }
   

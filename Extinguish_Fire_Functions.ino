@@ -13,6 +13,9 @@ void scan(void) {
   if(fireServoPos > 180) {
 
     fireServoPos = 0; // reset the position
+    if(lastFlameVal < 800) {
+      fireStillExists = true;
+    }
     lastFlameVal = 2000; // reset the last flame val
     flameServo.write(0); // write the servo back to reset position
     scanComplete = true; //Indicate the scan is complete
