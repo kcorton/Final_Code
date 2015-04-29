@@ -22,10 +22,13 @@ void scan(void) {
     lastFlameVal = 2000; // reset the last flame val
     flameServo.write(0); // write the servo back to reset position
     scanComplete = true; //Indicate the scan is complete
-
-      //Serial.println("DONEEEEE");
-    //Serial.println(firePosition);
-
+    if (firePosition > 90){
+      candleTurn = (firePosition - 90);
+    }
+    else{
+      candleTurn = -(90 -firePosition);
+    }
+    flameAngle += candleTurn;
   }
 
   else {
@@ -60,13 +63,14 @@ void scan(void) {
 // turns robot to the angle specified based on the variable changed in the scan function
 
 void turnTowardFlame(void){
-  if (firePosition > 90){
-    candleTurn = (firePosition - 90);
-    turn(candleTurn);
-
-  }
-  else if (firePosition < 90){
-    candleTurn = -(90 -firePosition);
+//  if (firePosition > 90){
+//    candleTurn = (firePosition - 90);
+//    turn(candleTurn);
+//
+//  }
+//  else if (firePosition < 90){
+//    candleTurn = -(90 -firePosition);
+  if(firePosition != 90){
     turn(candleTurn);
   }
   else {
@@ -297,59 +301,16 @@ void reportFlame(void) {
 // this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
 
 void updateAngleDriveLocation(void){
+  averageDist();
+  xCoord = xCoord + candleChangeDisX();
+  yCoord = yCoord + candleChangeDisY();
   
-  Serial.println(candleChangeDisCos());
-  Serial.println(candleChangeDisSin());
-
-  if (drivingDirection == xPos){
-    if (candleTurn > 0){
-
-      xCoord = xCoord + candleChangeDisCos();
-      yCoord = yCoord + candleChangeDisSin();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord + candleChangeDisCos();
-      yCoord = yCoord - candleChangeDisSin();
-      
-    }
-  }
-  else if(drivingDirection == yPos) {
-    if (candleTurn > 0){
-
-      xCoord = xCoord - candleChangeDisSin();
-      yCoord = yCoord + candleChangeDisCos();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord + candleChangeDisSin();
-      yCoord = yCoord + candleChangeDisCos();
-    }
-  }
-  else if( drivingDirection == xNeg) {
-    if (candleTurn > 0){
-
-      xCoord = xCoord - candleChangeDisCos();
-      yCoord = yCoord - candleChangeDisSin();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord - candleChangeDisCos();
-      yCoord = yCoord + candleChangeDisSin();
-    }
-  }
-  else if(drivingDirection == yNeg) {
-    if (candleTurn > 0){
-
-      xCoord = xCoord + candleChangeDisSin();
-      yCoord = yCoord - candleChangeDisCos();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord - candleChangeDisSin();
-      yCoord = yCoord - candleChangeDisCos();
-    }
-  }
+  Serial.print(candleChangeDisX());
+  Serial.print("  ");
+  Serial.print(candleChangeDisY());
+  Serial.print("  ");
+  Serial.print(drivingDirection);
+  Serial.print("  ");
 
   leftCounter = 0;
   rightCounter = 0;
@@ -360,32 +321,52 @@ void updateAngleDriveLocation(void){
 
 /*********************************************************************************************/
 
-float candleChangeDisCos(void){
+void averageDist(void){
   float leftDist = 0;
   float rightDist = 0;
 
   leftDist = inchesPerTick * leftCounter;
   rightDist = inchesPerTick * rightCounter;
+  
+  averageDistance = ((leftDist + rightDist) / 2);
+}
 
-  return ((leftDist + rightDist)/2) *(float)cos(flameAngle);
+/*********************************************************************************************/
+
+float candleChangeDisX(void){
+  
+  float cosAngle;
+  cosAngle = cos(convertToRad(flameAngle));
+//  Serial.print(cosAngle);
+//  Serial.print("  ");
+//  Serial.print(averageDistance);
+//  Serial.print("  ");
+  return (float)(averageDistance) * cosAngle;
+  
 }
 /*********************************************************************************************/
 
-float candleChangeDisSin(void){
-  float leftDist = 0;
-  float rightDist = 0;
+float candleChangeDisY(void){
 
-  leftDist = inchesPerTick * leftCounter;
-  rightDist = inchesPerTick * rightCounter;
 
-  return ((leftDist + rightDist)/2) * (float)sin(flameAngle);  
+  float sinAngle;
+  sinAngle = sin(convertToRad(flameAngle));
+//  Serial.print(sinAngle);
+//  Serial.print("  ");
+//  Serial.print(averageDistance);
+//  Serial.print("  ");
+  return (float)(averageDistance) * sinAngle; 
   
   
 }
 /*********************************************************************************************/
 void adjustFlamePos(void){
-  xCoord = xCoord + 9 * (float)cos(flameAngle);
-  yCoord = yCoord + 9 * (float)sin(flameAngle);  
+  xCoord = xCoord + 10 * cos(convertToRad(flameAngle));
+  yCoord = yCoord + 10 * sin(convertToRad(flameAngle));  
+}
+/*********************************************************************************************/
+float convertToRad(int angle){
+  return (float)(PI/180) * (float)angle;
 }
 
 

@@ -9,12 +9,12 @@
 void turn(int turnDeg){
 
   if (firstTimeThroughTurning){
+    robotIsTurning = true;
     lastTurnTime = millis();
     firstTimeThroughTurning = false;
   }
   /* If enough time has passed */
   if(countTime - lastTurnCount >= 1) {
-
     currTurnTime = millis() - lastTurnTime;
 
     gyro.read();
@@ -25,12 +25,12 @@ void turn(int turnDeg){
     totalDegrees += (float)mdps * ((float)currTurnTime/2000) * 2.1;
 
     if(turnDeg >= 0) {
-
       /* Write Changes to the motors */
       leftSpeed = -turningSpeed;
       rightSpeed = turningSpeed;
       updateMotors();
-
+      
+      
       // if the turn has been completed
       if(totalDegrees >= turnDeg) {
         turnComplete = true;
@@ -43,13 +43,16 @@ void turn(int turnDeg){
 
         if (mainState == findingFire){
           storeLocation();
-          turnStateMachine(turnDeg);  
+          turnStateMachine(turnDeg); 
+          robotIsTurning = false;
         }
         else if (mainState == extinguishingFire) {
-          // do nothing for now
+          robotIsTurning = false;
         }
-        else if (mainState == returningHome) { 
+        else //if (mainState == returningHome) 
+       { 
           turnStateMachine(turnDeg);
+          robotIsTurning = false;
         }
       }
     }
@@ -72,13 +75,16 @@ void turn(int turnDeg){
 
         if (mainState == findingFire){
           storeLocation();
-          turnStateMachine(turnDeg);  
+          turnStateMachine(turnDeg); 
+          robotIsTurning = false; 
         }
         else if (mainState == extinguishingFire) {
+          robotIsTurning = false;
           // do nothing for now
         }
         else if (mainState == returningHome) { 
           turnStateMachine(turnDeg);
+          robotIsTurning = false;
         }
       }
     }

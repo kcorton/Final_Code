@@ -49,20 +49,21 @@ void lookForFire(void) {
         servoIncreasing = 1;
       }
     }
-
-
-    /* If the flame is found */
-    if(flameVal < 800) {
-      /* Change to extiguish fire state */
-      mainState = extinguishingFire;
-      setInitialFlameAngle();
-      stopAllDrive();
-      updateLocation ();
-      fireServoPos = 0; // reset the position
-      lastFlameVal = 2000; // reset the last flame val
-      flameServo.write(0); // write the servo back to reset position
-      scanComplete = true; //Indicate the scan is complete
-      //Serial.println("Fire Found");
+   
+    if(robotIsTurning == false){
+      /* If the flame is found */
+      if(flameVal < 800) {
+        /* Change to extiguish fire state */
+        mainState = extinguishingFire;
+        setInitialFlameAngle();
+        stopAllDrive();
+        updateLocation ();
+        fireServoPos = 0; // reset the position
+        lastFlameVal = 2000; // reset the last flame val
+        flameServo.write(0); // write the servo back to reset position
+        scanComplete = true; //Indicate the scan is complete
+        //Serial.println("Fire Found");
+      }
     }
 
     lastFireTimeCount = countTime; // reset the stored time variable
@@ -237,20 +238,21 @@ void checkForCliff(void){
 /*********************************************************************************************/
 void setInitialFlameAngle(void){
   switch(drivingDirection){
-    case xPos:
-      flameAngle = 0;
+  case xPos:
+    flameAngle = 0;
     break;
-    case xNeg:
-      flameAngle = 180;
+  case xNeg:
+    flameAngle = 180;
     break;
-    case yPos:
-      flameAngle = 90;
+  case yPos:
+    flameAngle = 90;
     break;
-    case yNeg:
-      flameAngle = -90;
+  case yNeg:
+    flameAngle = -90;
     break;  
   }
 }
+
 
 
 

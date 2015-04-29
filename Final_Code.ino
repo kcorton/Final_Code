@@ -125,7 +125,7 @@
 #define ninetyDeg 90
 #define negNinetyDeg -90
 #define pullAUiey 180
-#define inchesPerTick .0066401062 
+#define inchesPerTick .0066403062 //originally .0066401062
 #define turningSpeed 300
 #define wallProportionalVal 100
 
@@ -246,6 +246,7 @@ boolean firstTimeThroughTurning = true;
 long tempTimer = 0;
 boolean firstTimeThroughWholeProgram = true;
 boolean homeIsReached = false;
+boolean robotIsTurning = false;
 
 // Interrupt Variables
 volatile long countTime = 0;
@@ -267,6 +268,7 @@ long armUpTime = 4000;
 boolean fireStillExists = false;
 int backFromFlame = -250;
 int flameAngle = 0;
+long averageDistance = 0;
 
 /*********************************************************************************************/
 void setup(){
@@ -383,14 +385,16 @@ void loop() {
   //  Serial.print(pingNext);
   //  Serial.print("  ");
   //  pingNext = frontSonar;
-    Serial.print(getDis(frontSonar));
-    Serial.print("  ");
-    Serial.print(getDis(sideSonar));
-    Serial.print("  ");
-    Serial.print(getDis(backSonar));
-    Serial.print("  ");
-    Serial.print(rtnState);
-    Serial.print("  ");
+//    Serial.print(getDis(frontSonar));
+//    Serial.print("  ");
+//    Serial.print(getDis(sideSonar));
+//    Serial.print("  ");
+//    Serial.print(getDis(backSonar));
+//    Serial.print("  ");
+//    Serial.print(rtnState);
+//    Serial.print("  ");
+
+
     Serial.print(xCoord);
     Serial.print("  ");
     Serial.print(yCoord);
@@ -426,9 +430,11 @@ void loop() {
 void findFire(void) {
 
   printPosition();
+  
 
   // rotates the fire sensor looking for a fire
   lookForFire();
+  
   // checks the cliff detector for a cliff
   if (mazeState != seeingCliff){
     checkForCliff();
@@ -508,7 +514,7 @@ void findFire(void) {
     lcd.println("ERROR 01");
     delay(5000);
   }
-
+  
 }
 
 /*********************************************************************************************/
@@ -523,7 +529,6 @@ void extinguishFire(void){
     stopAllDrive();
     if(scanComplete) {
       extState = drivingToCandle;
-      flameAngle += firePosition;
       scanComplete = false; 
     }
     break;
