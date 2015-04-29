@@ -32,7 +32,7 @@ void lookForFire(void) {
     flameServo.write(fireServoPos);
 
     if(servoIncreasing) {
-      if(fireServoPos <= 170) {
+      if(fireServoPos <= 110) {
         fireServoPos += 10; 
         flameServo.write(fireServoPos);     
       }

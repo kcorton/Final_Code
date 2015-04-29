@@ -361,8 +361,8 @@ float candleChangeDisY(void){
 }
 /*********************************************************************************************/
 void adjustFlamePos(void){
-  xCoord = xCoord + 10 * cos(convertToRad(flameAngle));
-  yCoord = yCoord + 10 * sin(convertToRad(flameAngle));  
+  xCoord = xCoord + 12 * cos(convertToRad(flameAngle));
+  yCoord = yCoord + 12 * sin(convertToRad(flameAngle));  
 }
 /*********************************************************************************************/
 float convertToRad(int angle){

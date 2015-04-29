@@ -395,10 +395,13 @@ void loop() {
 //    Serial.print("  ");
 
 
-    Serial.print(xCoord);
-    Serial.print("  ");
-    Serial.print(yCoord);
-    Serial.print("  ");
+//    Serial.print(xCoord);
+//    Serial.print("  ");
+//    Serial.print(yCoord);
+//    Serial.print("  ");
+  Serial.print("flameAngle = ");
+  Serial.print(flameAngle);
+  Serial.print("  ");
 
   ping(pingNext); // continually pings the sonars being used to update their values
 
@@ -575,6 +578,7 @@ void extinguishFire(void){
     }
     break; 
   case flameIsOut: 
+    updateAngleDriveLocation();
     adjustFlamePos();
     reportFlame(); 
     mainState = returningHome;
@@ -601,6 +605,8 @@ void returnHome(void) {
     if(disTravComplete){
       disTravComplete = false;
       rtnState = gettingToWallTurning180;
+      leftSpeed = baseSpeed;
+      rightSpeed = baseSpeed;
     }
     break;
   case gettingToWallTurning180: 
@@ -635,6 +641,7 @@ void returnHome(void) {
     turn(ninetyDeg);
 
     if(turnComplete){
+      turnComplete = false;
       rtnState = gettingCoordinates;
       returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
     }
