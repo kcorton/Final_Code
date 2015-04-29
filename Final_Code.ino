@@ -126,7 +126,7 @@
 #define negNinetyDeg -90
 #define pullAUiey 180
 #define inchesPerTick .0066403062 //originally .0066401062
-#define turningSpeed 300
+#define turningSpeed 400
 #define wallProportionalVal 100
 
 //LCD setup
@@ -597,6 +597,7 @@ void extinguishFire(void){
 void returnHome(void) {
 
   checkForCliff();
+  Serial.println(rtnState);
 
   digitalWrite(ledArrayPin,HIGH);
   switch (rtnState) {
@@ -645,6 +646,7 @@ void returnHome(void) {
       rtnState = gettingCoordinates;
       returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
     }
+    break;
   case gettingCoordinates:
     getCoordinates();
 
@@ -704,6 +706,7 @@ void returnHome(void) {
     if(homeIsReached){
       mainState = madeItHome;
     }
+    break;
   case seeingCliffReturning:
     seenCliff();  
     break;  

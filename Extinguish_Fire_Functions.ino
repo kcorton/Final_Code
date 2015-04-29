@@ -305,12 +305,12 @@ void updateAngleDriveLocation(void){
   xCoord = xCoord + candleChangeDisX();
   yCoord = yCoord + candleChangeDisY();
   
-  Serial.print(candleChangeDisX());
-  Serial.print("  ");
-  Serial.print(candleChangeDisY());
-  Serial.print("  ");
-  Serial.print(drivingDirection);
-  Serial.print("  ");
+//  Serial.print(candleChangeDisX());
+//  Serial.print("  ");
+//  Serial.print(candleChangeDisY());
+//  Serial.print("  ");
+//  Serial.print(drivingDirection);
+//  Serial.print("  ");
 
   leftCounter = 0;
   rightCounter = 0;
