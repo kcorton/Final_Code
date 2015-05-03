@@ -479,12 +479,15 @@ void findFire(void) {
 //Extinguish Fire Switch Statement
 
 void extinguishFire(void){
-  printPosition();
-  digitalWrite(ledArrayPin,LOW);
+  
+  printPosition();  // prints the position of the robot
+  digitalWrite(ledArrayPin,LOW);  // changes the LED flashing sequence
   switch (extState) {
   case initialScanning:
+    // scans the servo range looking for the highest fire value
     scan();
     stopAllDrive();
+    // once the scan is complete drive towards the candle
     if(scanComplete) {
       extState = drivingToCandle;
       scanComplete = false; 
@@ -492,10 +495,13 @@ void extinguishFire(void){
     break;
 
   case drivingToCandle: 
+    // scans, turns, and drives the robot towards the fire repeatadely 
     driveToCandle();
-
+  
+    //if its not scanning or turning check the front sonar for the candle
     if((driveToCandleState != scanning) && (driveToCandleState != turningToCandle)){
 
+      // once the candle base is seen
       if(checkFrontDis(candleDist)){
         stopAllDrive();
         extState = activatingFan;
@@ -503,13 +509,10 @@ void extinguishFire(void){
       }
     }
     break;
+    
   case activatingFan:
-    if(usePID){
+      // activates the fan and runs it from top to bottom
       activateFanPID();
-    }
-    else{
-      activateFanSwitches();  
-    }
 
     if(fanSweepComplete){ 
       extState = checkingFlame;
@@ -519,10 +522,12 @@ void extinguishFire(void){
     break;
 
   case checkingFlame: 
+    // scans to see if the fire is still going
     scan();
     if(scanComplete){
       scanComplete = false;
-
+      
+      // if the fire still exists go back to finding it
       if(fireStillExists) { 
         extState = drivingToCandle;
       }
@@ -533,6 +538,7 @@ void extinguishFire(void){
     }
     break; 
   case flameIsOut: 
+    // calculate the final candle location and return home
     updateAngleDriveLocation();
     adjustFlamePos();
     reportFlame(); 
@@ -551,12 +557,13 @@ void extinguishFire(void){
 
 void returnHome(void) {
 
+  // continue checking for a cliff
   checkForCliff();
-  Serial.println(rtnState);
 
-  digitalWrite(ledArrayPin,HIGH);
+  digitalWrite(ledArrayPin,HIGH);  // change the LED's because the fire is out
   switch (rtnState) {
   case backUp:
+    // backs up away from the candle
     driveStraightDesDis(backFromFlame);
     if(disTravComplete){
       disTravComplete = false;
@@ -566,6 +573,7 @@ void returnHome(void) {
     }
     break;
   case gettingToWallTurning180: 
+    // turn 180 degrees to drive home
     turn(pullAUiey);
     if(turnComplete) {
       turnComplete = false; 
@@ -573,18 +581,25 @@ void returnHome(void) {
     } 
     break;
   case gettingBackToWallDrive:
+    // drive straight 
     driveStraightForwardEnc();
+    
+    // if you can see a wall to the side straighten the robot to the wall
     if(checkSideDisLess(closeWallDist)){
       stopAllDrive();
       rtnState = straighteningRobot;
       tempTimer = countTime;
     }
+    
+    // if you see a wall to the front turn once
     else if(checkFrontDis(frontWallDist)){ 
       stopAllDrive();
       rtnState = turningOnce;
     }
     break;  
+    
   case straighteningRobot:
+  // follow the wall for a second to straighten the robot to the wall
     followWall();
     if((countTime - tempTimer) >= 10){
       stopAllDrive();
@@ -594,6 +609,7 @@ void returnHome(void) {
     break;
 
   case turningOnce:
+  // turn the robot 90 degrees to follow the wall
     turn(ninetyDeg);
 
     if(turnComplete){
@@ -603,6 +619,7 @@ void returnHome(void) {
     }
     break;
   case gettingCoordinates:
+  // gets the next coordinates to drive to
     getCoordinates();
 
     if(currentArrayRow != 0){ 
@@ -614,13 +631,18 @@ void returnHome(void) {
       rtnState = drivingToHome;
     }
     break;
+    
   case drivingToCoordinate:
+  // follow the wall until you need to turn
     followWall(); 
-
+    
+    // if there is a wall to the front turn around it
     if(checkFrontDis(frontWallDist)){
       stopAllDrive();
       rtnState = determiningDriveDirrection;
     }
+    
+    // if the wall to the side is lost turn about it
     if(checkSideDisGreater(closeWallDist)){
       stopAllDrive();
       rtnState = DrivingToTurnAboutWall; 
@@ -628,6 +650,7 @@ void returnHome(void) {
 
     break;   
   case DrivingToTurnAboutWall: 
+    //drive forward to turn about the wall
     driveStraightDesDis(forwardDisToTurnAboutWall);
     if(disTravComplete) {
       firstTimeThrough = true;
@@ -635,34 +658,44 @@ void returnHome(void) {
       disTravComplete = false;
     }
     break;
+    
   case determiningDriveDirrection:
+  
+    // turn ninety degrees
     turn(ninetyDeg);
 
     if(turnComplete){
       turnComplete = false;
-      xCoord = nextXCoord;  // we have reached the next coordinates
-      yCoord = nextYCoord;  // we have reached the next coordinates
+      xCoord = nextXCoord;  // we have reached the next coordinates update our location
+      yCoord = nextYCoord;  // we have reached the next coordinates update our location 
       rtnState = gettingCoordinates;
     }
     break;
 
   case determiningDriveDirrection2:
+  
+    // turn negative ninety Degrees
     turn(negNinetyDeg);
 
     if(turnComplete){
       turnComplete = false;
-      xCoord = nextXCoord;  // we have reached the next coordinates
-      yCoord = nextYCoord;  // we have reached the next coordinates
+      xCoord = nextXCoord;  // we have reached the next coordinates update our location 
+      yCoord = nextYCoord;  // we have reached the next coordinates update our location 
       rtnState = gettingCoordinates;
     }
     break;
+    
   case drivingToHome:
+  
+    // drives the correct distance based on the difference in the coordinates to get home 
     driveHome();
     if(homeIsReached){
       mainState = madeItHome;
     }
     break;
   case seeingCliffReturning:
+  
+    // this is entered by an interrupt if a cliff is seen 
     seenCliff();  
     break;  
   default:
@@ -672,6 +705,9 @@ void returnHome(void) {
 
   }
 }
+
+/*********************************************************************************************/
+// Called in the setup to calcualte the gyro offset
 
 void calcGyroOffset(void) {
 
