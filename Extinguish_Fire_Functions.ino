@@ -22,10 +22,13 @@ void scan(void) {
     lastFlameVal = 2000; // reset the last flame val
     flameServo.write(0); // write the servo back to reset position
     scanComplete = true; //Indicate the scan is complete
-
-      //Serial.println("DONEEEEE");
-    //Serial.println(firePosition);
-
+    if (firePosition > 90){
+      candleTurn = (firePosition - 90);
+    }
+    else{
+      candleTurn = -(90 -firePosition);
+    }
+    flameAngle += candleTurn;
   }
 
   else {
@@ -60,13 +63,14 @@ void scan(void) {
 // turns robot to the angle specified based on the variable changed in the scan function
 
 void turnTowardFlame(void){
-  if (firePosition > 90){
-    candleTurn = (firePosition - 90);
-    turn(candleTurn);
-
-  }
-  else if (firePosition < 90){
-    candleTurn = -(90 -firePosition);
+//  if (firePosition > 90){
+//    candleTurn = (firePosition - 90);
+//    turn(candleTurn);
+//
+//  }
+//  else if (firePosition < 90){
+//    candleTurn = -(90 -firePosition);
+  if(firePosition != 90){
     turn(candleTurn);
   }
   else {
@@ -123,6 +127,102 @@ void driveToCandle(void) {
   }
 
 }
+
+/*********************************************************************************************/
+// Activate Fan Function 
+
+// Sweeps Fan between it's two extreme postions and checks if the fire is still detected 
+
+void activateFanPID(void) {
+  digitalWrite(fanPin, HIGH);
+  armPos = analogRead(armPotPin);
+  switch (armState) {
+  case armUp:
+    armWrite = 410;
+    if (armPos >= armWrite) {
+      armState = armDown;
+    }
+    break;
+
+  case armDown:
+    armWrite = 310;
+    if (armPos <= armWrite) {
+      armState = armUp;
+      fanSweepComplete = true;
+    }
+    break;
+  }
+  armMotor.write(pidOut);
+  //Serial.println(armPos);
+
+  //  // run fan between two extremes 
+  //  digitalWrite(fanPin, HIGH);
+  //  armTimePassed = countTime - armInitTime;
+  //  switch(armState){
+  //  case armToMid:
+  //    armMotor.write(108);
+  //    if(analogRead(armPotPin) > midPos){
+  //      armState = armAtMid;
+  //    }
+  //    break;
+  //  case armAtMid:
+  //    initTime = countTime;
+  //    armState = waitingAtMid;
+  //    break;
+  //  case waitingAtMid:
+  //    armMotor.write(100);
+  //    if((armTimePassed - initTime) > armWaitTime){
+  //      armState = armToTop;
+  //    }
+  //    break;
+  //  case armToTop:
+  //    armMotor.write(108);
+  //    if(analogRead(armPotPin) > highPos){
+  //      armState = reachedTop;
+  //    }
+  //    break;
+  //  case reachedTop:
+  //    initTime = countTime;
+  //    armState = waitingAtTop;
+  //    break;
+  //  case waitingAtTop: 
+  //    armMotor.write(100);
+  //    if((armTimePassed-initTime) > armWaitTime){
+  //      armState = loweringArm;
+  //    }
+  //    break;
+  //  case loweringArm:
+  //    armMotor.write(93);
+  //    if (analogRead(armPotPin) <=  lowPos){
+  //      armMotor.write(90);
+  //      digitalWrite(fanPin, LOW);
+  //      fanSweepComplete = true;
+  //    }
+  //    break;
+  //
+  //  default:
+  //    Serial.println("HIT ACTIVATE FAN DEFAULT");
+  //    lcd.println("ERROR 06");
+  //    delay(5000);
+  //    break;
+  //  }
+}
+/*********************************************************************************************/
+void calcArmPID() {
+
+  int integral;
+  integral += armPos;
+  int lastPos = armPos;
+  armPos = analogRead(armPotPin);
+  int pidRaw = (float)Kp * (armWrite - armPos) + (float)Kd * (lastPos - armPos) + (float)Ki * integral;
+  if (pidRaw < 0) {
+    pidOut = map(pidRaw, 0, 90, -2000, 0);
+  }
+  else {
+    pidOut = map(pidRaw, 90, 180, 0, 2000);
+  }
+}
+
 
 /*********************************************************************************************/
 //drives the fan up until it reaches the limit switch, waits a set amount of time, then sends the fan down.
@@ -201,59 +301,16 @@ void reportFlame(void) {
 // this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
 
 void updateAngleDriveLocation(void){
+  averageDist();
+  xCoord = xCoord + candleChangeDisX();
+  yCoord = yCoord + candleChangeDisY();
   
-  Serial.println(candleChangeDisCos());
-  Serial.println(candleChangeDisSin());
-
-  if (drivingDirection == xPos){
-    if (candleTurn > 0){
-
-      xCoord = xCoord + candleChangeDisCos();
-      yCoord = yCoord + candleChangeDisSin();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord + candleChangeDisCos();
-      yCoord = yCoord - candleChangeDisSin();
-      
-    }
-  }
-  else if(drivingDirection == yPos) {
-    if (candleTurn > 0){
-
-      xCoord = xCoord - candleChangeDisSin();
-      yCoord = yCoord + candleChangeDisCos();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord + candleChangeDisSin();
-      yCoord = yCoord + candleChangeDisCos();
-    }
-  }
-  else if( drivingDirection == xNeg) {
-    if (candleTurn > 0){
-
-      xCoord = xCoord - candleChangeDisCos();
-      yCoord = yCoord - candleChangeDisSin();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord - candleChangeDisCos();
-      yCoord = yCoord + candleChangeDisSin();
-    }
-  }
-  else if(drivingDirection == yNeg) {
-    if (candleTurn > 0){
-
-      xCoord = xCoord + candleChangeDisSin();
-      yCoord = yCoord - candleChangeDisCos();
-    }
-
-    else if(candleTurn < 0){
-      xCoord = xCoord - candleChangeDisSin();
-      yCoord = yCoord - candleChangeDisCos();
-    }
-  }
+//  Serial.print(candleChangeDisX());
+//  Serial.print("  ");
+//  Serial.print(candleChangeDisY());
+//  Serial.print("  ");
+//  Serial.print(drivingDirection);
+//  Serial.print("  ");
 
   leftCounter = 0;
   rightCounter = 0;
@@ -264,32 +321,52 @@ void updateAngleDriveLocation(void){
 
 /*********************************************************************************************/
 
-float candleChangeDisCos(void){
+void averageDist(void){
   float leftDist = 0;
   float rightDist = 0;
 
   leftDist = inchesPerTick * leftCounter;
   rightDist = inchesPerTick * rightCounter;
+  
+  averageDistance = ((leftDist + rightDist) / 2);
+}
 
-  return ((leftDist + rightDist)/2) *(float)cos(flameAngle);
+/*********************************************************************************************/
+
+float candleChangeDisX(void){
+  
+  float cosAngle;
+  cosAngle = cos(convertToRad(flameAngle));
+//  Serial.print(cosAngle);
+//  Serial.print("  ");
+//  Serial.print(averageDistance);
+//  Serial.print("  ");
+  return (float)(averageDistance) * cosAngle;
+  
 }
 /*********************************************************************************************/
 
-float candleChangeDisSin(void){
-  float leftDist = 0;
-  float rightDist = 0;
+float candleChangeDisY(void){
 
-  leftDist = inchesPerTick * leftCounter;
-  rightDist = inchesPerTick * rightCounter;
 
-  return ((leftDist + rightDist)/2) * (float)sin(flameAngle);  
+  float sinAngle;
+  sinAngle = sin(convertToRad(flameAngle));
+//  Serial.print(sinAngle);
+//  Serial.print("  ");
+//  Serial.print(averageDistance);
+//  Serial.print("  ");
+  return (float)(averageDistance) * sinAngle; 
   
   
 }
 /*********************************************************************************************/
 void adjustFlamePos(void){
-  xCoord = xCoord + 9 * (float)cos(flameAngle);
-  yCoord = yCoord + 9 * (float)sin(flameAngle);  
+  xCoord = xCoord + 12 * cos(convertToRad(flameAngle));
+  yCoord = yCoord + 12 * sin(convertToRad(flameAngle));  
+}
+/*********************************************************************************************/
+float convertToRad(int angle){
+  return (float)(PI/180) * (float)angle;
 }
 
 

@@ -30,6 +30,9 @@ void timerISR(){
   if (accelTime < 1){
     accelTime += .05;                             
   }
+//  if(extState == activatingFan){
+//    calcArmPID();
+//  }
 }
 
 //========================================================
@@ -76,3 +79,49 @@ void frontSonarISR(){
   }
 
 }
+//========================================================
+//void sideSonarISR(){
+//  if(digitalRead(sideEchoPin) == HIGH){
+//    sidePingTime = micros();
+//  }
+//  else{
+//    tempEchoSide = micros() - sidePingTime;
+//    if((tempEchoSide < 30000) && (tempEchoFront >=0)){
+//      sideEchoTime = tempEchoSide;
+//      switch(mainState){
+//      case findingFire:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      case extinguishingFire:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      case returningHome:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      case madeItHome:
+//        {
+//          pingNext = sideSonar;
+//          break;
+//        }
+//      default:
+//        Serial.println("SIDE SONAR ISR DEFAULT HIT");
+//        lcd.println("ERROR");
+//        delay(5000);
+//        break;
+//      }
+//    }
+//    else{
+//      pingNext = sideSonar; 
+//    }
+//    waiting = false;
+//  }
+//}
+
+
+

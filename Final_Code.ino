@@ -124,8 +124,8 @@
 #define ninetyDeg 90 //ninety degrees used for turning
 #define negNinetyDeg -90  // negative ninety degrees used for turning
 #define pullAUiey 180 // 180 degrees used for turning 
-#define inchesPerTick .0066401062 // the number of inches driven per encoder tick
-#define turningSpeed 300 // the speed the robot turns at
+#define inchesPerTick .0066403062 // the number of inches driven per encoder tick
+#define turningSpeed 400 // the speed the robot turns at
 #define wallProportionalVal 100 //the variable used as proportional control with the distance from the wall
 #define velocityProportionalVal 0.5 // the variable used as a proportional control with the velocities of the wheels
 
@@ -479,19 +479,14 @@ void findFire(void) {
 //Extinguish Fire Switch Statement
 
 void extinguishFire(void){
-  
-  printPosition(); // prints the position of the robot
-  digitalWrite(ledArrayPin,LOW); // changes the LED flashing sequence
+  printPosition();
+  digitalWrite(ledArrayPin,LOW);
   switch (extState) {
   case initialScanning:
-    // scans the servo range looking for the highest fire value
     scan();
     stopAllDrive();
-    // once the scan is complete drive towards the candle
     if(scanComplete) {
       extState = drivingToCandle;
-      // updates the flame angle to include
-      flameAngle += firePosition;
       scanComplete = false; 
     }
     break;
@@ -504,12 +499,17 @@ void extinguishFire(void){
       if(checkFrontDis(candleDist)){
         stopAllDrive();
         extState = activatingFan;
+        armState = armUp;
       }
     }
     break;
   case activatingFan:
-   
+    if(usePID){
+      activateFanPID();
+    }
+    else{
       activateFanSwitches();  
+    }
 
     if(fanSweepComplete){ 
       extState = checkingFlame;
@@ -533,6 +533,7 @@ void extinguishFire(void){
     }
     break; 
   case flameIsOut: 
+    updateAngleDriveLocation();
     adjustFlamePos();
     reportFlame(); 
     mainState = returningHome;
@@ -551,6 +552,7 @@ void extinguishFire(void){
 void returnHome(void) {
 
   checkForCliff();
+  Serial.println(rtnState);
 
   digitalWrite(ledArrayPin,HIGH);
   switch (rtnState) {
@@ -559,6 +561,8 @@ void returnHome(void) {
     if(disTravComplete){
       disTravComplete = false;
       rtnState = gettingToWallTurning180;
+      leftSpeed = baseSpeed;
+      rightSpeed = baseSpeed;
     }
     break;
   case gettingToWallTurning180: 
@@ -593,9 +597,11 @@ void returnHome(void) {
     turn(ninetyDeg);
 
     if(turnComplete){
+      turnComplete = false;
       rtnState = gettingCoordinates;
       returnHomeInitDirection(); //changes the driving direction the initial time when the robot is back to the wall
     }
+    break;
   case gettingCoordinates:
     getCoordinates();
 
@@ -655,6 +661,7 @@ void returnHome(void) {
     if(homeIsReached){
       mainState = madeItHome;
     }
+    break;
   case seeingCliffReturning:
     seenCliff();  
     break;  
