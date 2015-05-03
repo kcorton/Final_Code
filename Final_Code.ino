@@ -44,7 +44,7 @@
 //Finiding Fire State Machine States
 #define followingWall 0
 #define seeingWallFront 1
-#define loosingWall 2
+#define losingWall 2
 #define seeingCliff 3
 
 // See Wall State Machine States
@@ -93,8 +93,6 @@
 #define seeingCliffReturning 11
 
 //Fan Sweep State Machine
-#define armUp 0
-#define armDown 1
 #define drivingUp 0
 #define waitingAtTop 1
 #define drivingDown 2
@@ -108,26 +106,28 @@
 // Sonar Names 
 #define frontSonar 0
 #define sideSonar 1
-#define backSonar 2
+#define backSonar 2 // this is the side sonar used when driving back to home
 
-// Array Columns 
+// Array Columns for storing points as the maze is traversed
 #define xCol 0
 #define yCol 1
 
 // Pre-defined Values and Distances
 #define candleDist 4 // the distance away from the candle when the robot will stop
 #define frontWallDist 5  // the distance from the front wall when the robot should stop
-#define desiredDist 4  //the desired distance between the robot and the wall
-#define closeWallDist 6  // if a wall is within this value there is a close wall it should follow
-#define negBackFromCliffDist -500  //(5 inches) how far the robot will back up after seeing a cliff in encoder t
-#define forwardDisToTurnAboutWall2 5000 
+#define desiredDist 4  //the desired distance between the robot and the side wall
+#define closeWallDist 6 // if a wall is within this value there is a close wall to be followed
+#define backFromFlame -250 // how far the robot should back up from the candle to return home in encoder ticks
+#define negBackFromCliffDist -500  //(5 inches) how far the robot will back up after seeing a cliff in encoder ticks
+#define forwardDisToTurnAboutWall2 5000  // how far the robot drives forward after loosing the wall driving forward and turning to turn about the penensula 
 #define forwardDisToTurnAboutWall 1500//(2 inches) how far the robot drives straight once it's lost the wall in encoder ticks
-#define ninetyDeg 90
-#define negNinetyDeg -90
-#define pullAUiey 180
-#define inchesPerTick .0066401062 
-#define turningSpeed 300
-#define wallProportionalVal 100
+#define ninetyDeg 90 //ninety degrees used for turning
+#define negNinetyDeg -90  // negative ninety degrees used for turning
+#define pullAUiey 180 // 180 degrees used for turning 
+#define inchesPerTick .0066401062 // the number of inches driven per encoder tick
+#define turningSpeed 300 // the speed the robot turns at
+#define wallProportionalVal 100 //the variable used as proportional control with the distance from the wall
+#define velocityProportionalVal 0.5 // the variable used as a proportional control with the velocities of the wheels
 
 //LCD setup
 LiquidCrystal lcd(13, 12, 17, 16, 15, 14);
@@ -136,91 +136,83 @@ LiquidCrystal lcd(13, 12, 17, 16, 15, 14);
 Servo armMotor;
 Servo flameServo;
 
-// Variables for Activate Fan Function   
-//int armTimePassed, armInitTime;
-//int armWaitTime = 5;
-//int highPos = 390;
-//int midPos = 350;
-//int lowPos = 320;
-//long initTime = 0;
-int armWrite, armPos;
-volatile int pidOut;
-#define Kp 2
-#define Kd 1
-#define Ki 0
-
 //Variable for Driving To Candle
-long initTimeCandleDrive = 0;
-int candleTurn = 0;
+long initTimeCandleDrive = 0; // time variable used to drive forward towards the candle for a certain time
+int candleTurn = 0; //the degrees the robot actually turns to face the candle
 
 // Variables for Fire Sensor Functions
-int servoIncreasing = 0;
-int fireServoPos = 0;
-long lastFireTimeCount = 0;
-int firePosition; 
-int lastFlameVal = 2000;
+int servoIncreasing = 0; // determines if the servo is increasing or decreasing
+int fireServoPos = 0; //the position of the servo with the fire sensor attached
+long lastFireTimeCount = 0; // time value used to run the finding fire function if a given amount of time has passed
+int firePosition; // the position of the servo where the fire is 
+int lastFlameVal = 2000; // the most extreme value from the fire sensor  
+int flameAngle = 0; // the angle the robot is driving relative to positive x when driving to candle
 
-// Variables for Return Home
-int disToNextCoor = 0;
-
-//Varables for Driveing Functions
+//Varables for Driving Functions
 int baseSpeed = 700; //encoder ticks per second
-int leftSpeed = baseSpeed;
-int rightSpeed = baseSpeed;
+int leftSpeed = baseSpeed;  // sets the left speed to the base speed
+int rightSpeed = baseSpeed; // sets the right speed to the base speed
 
-/*   Variables used by calcVelocity()   */
+//   Variables used by calcVelocity()   
 float speedStorage[2][5]; //stores five samples of the velocity from the last .5 seconds
 int lastLeftTicks = 0; //holds the value of leftCounter from the previous run of calcVelocity() 
-int lastRightTicks = 0;
+int lastRightTicks = 0; //holds the value of rightCounter from the previous run of calcVelocity()
 int tempLeftTicks = 0; //holds the captured value of leftCounter
-int tempRightTicks = 0;
-int leftChange = 0;
-int rightChange = 0;
-float leftVelocity = 0; //encoder ticks per second
-float rightVelocity = 0;
+int tempRightTicks = 0; //holds the captured value of rightCounter
+int leftChange = 0; // change in ticks since the last run
+int rightChange = 0; // change in ticks since the last run
+float leftVelocity = 0; //velocity of left motor in encoder ticks per second
+float rightVelocity = 0; //velocity of right motor in encoder ticks per second
 int nextIndex = 0; //the index currently being saved to in speedStorage
 long lastTime = 0; //holds the time of the last running of calcVelocity()
 
 /* Variables used by followWall() */
 float distToWall = 0; //the actual distance between the robot and the wall
-float wallError = 0;  //the difference between the above two
+float wallError = 0;  //the difference between the actual disance to the wall and the desired value
 float Kw = wallProportionalVal;  //propotional multiplier which affects how much the wallError affects the speed
 float velocityError = 0; //the difference between the speeds of the wheels
-float Kv = 0.5;  //propotional multiplier which affects how much the velocityError affects the speed
-volatile float accelTime;  //used as a multiplier to slow the robot's acceleration
+float Kv = velocityProportionalVal;  //propotional multiplier which affects how much the velocityError affects the speed
+
+//variables used in Fan Sweep Function
+int armRaiseSpeed = 110;
+int armHoldSpeed = 100;
+int armLowerSpeed = 92;
+int armMotorAdjust = 0;
+long initUpTime = 0;
+long initDownTime = 0;
+long armUpTime = 4000;
 
 //Variables for using the Sonar 
-volatile long frontPingTime = 0;
-volatile long sidePingTime = 0;
-long backPingTime = 0;
-volatile long frontEchoTime = 0;
-volatile long sideEchoTime = 0;
-volatile long backEchoTime = 0;
-volatile int tempEchoFront = 0;
-volatile int tempEchoSide = 0;
-int tempEchoBack = 0;
-volatile int pingNext = frontSonar;
+volatile long frontPingTime = 0;  // the time when the last front ping was sent 
+volatile long sidePingTime = 0; // the time when the last side ping was sent 
+long backPingTime = 0; // the time when the last back ping was sent 
+volatile long frontEchoTime = 0; // the time it took from sending the ping to get the ping back exculding bad data
+volatile long sideEchoTime = 0; // the time it took from sending the ping to get the ping back exculding bad data
+volatile long backEchoTime = 0; // the time it took from sending the ping to get the ping back exculding bad data
+volatile int tempEchoFront = 0; // the actual time it took from sending the ping to get the ping back not exculding bad data
+int tempEchoSide = 0; // the actual time it took from sending the ping to get the ping back not exculding bad data
+int tempEchoBack = 0; // the actual time it took from sending the ping to get the ping back not exculding bad data
+volatile int pingNext = frontSonar; // variable used to determine which sonar to ping next
 
 // variables used for turning with the gyro
-L3G gyro;
-int currGyroReading;
-int mdps = 0;
-float totalDegrees = 0;
-long lastTurnCount = 0;
-long lastTurnTime = 0;  
-long currTurnTime = 0;
-int offset = 0;
+L3G gyro; // initializes the gyro
+int currGyroReading; // the reading from the gyro
+int mdps = 0;  // milli degrees per second the robot is turning
+float totalDegrees = 0; // total degrees the robot has turned
+long lastTurnCount = 0; // time variable used to check the gyro every tenth of a second
+long lastTurnTime = 0;  // the time the turn started
+long currTurnTime = 0; // the length the turn has been occuring for
+int offset = 0; // the offset of the gyro calculated in setup
 
 // Variables to keep track of where the robot is and has been
-float xCoord = 0; 
-float yCoord = 0; 
-float nextXCoord = 0; 
-float nextYCoord = 0; 
-int locationsArray[15][2] = {
-  0};
-int currentArrayRow = 0;
-long temporaryLeftCounter; 
-long temporaryRightCounter;
+float xCoord = 0; // current xCoordinate of the robot
+float yCoord = 0; // current yCoordinate of the robot
+float nextXCoord = 0; // when returning home the next x coordinate to be reached
+float nextYCoord = 0; // when returning home the next y coordinat to be reached
+int locationsArray[30][2] = {0}; //an array of all the places the robot has made 90 degree turns
+int currentArrayRow = 0; // the current array row being accessed
+long temporaryLeftCounter; //a temporary encoder count value used to determine how far the robot drives
+long temporaryRightCounter; //a temporary encoder count value used to determine how far the robot drives
 
 // State variables
 volatile int mainState = 0; 
@@ -233,43 +225,33 @@ int rtnState = 0;
 int armState = 0; 
 int drivingDirection = xPos; 
 int driveToCandleState = 0;
+int armStateSwitches = 0;
 
 // boolean variables used in determining when to move to the next state
-boolean turnComplete = false; 
-boolean disTravComplete = false; 
-boolean scanComplete = false;
-boolean fanSweepComplete = false;
-boolean hitTop = false;
-volatile boolean waiting = false;
-boolean firstTimeThrough = true;
-boolean firstTimeThroughTurning = true;
-long tempTimer = 0;
-boolean firstTimeThroughWholeProgram = true;
-boolean homeIsReached = false;
+boolean turnComplete = false; // set to true once a turn is complete and then set back to false to be used in the next turn
+boolean disTravComplete = false; // set to true once the desired distance has been traveled
+boolean scanComplete = false; // set to true once the scan for fire is complete
+boolean fanSweepComplete = false; // set tu true when the fan sweep is complete
+boolean hitTop = false; // set to true when the top limit switch is hit with the fan
+volatile boolean waiting = false; // set to true when the sonar is waiting to recieve a ping back
+boolean firstTimeThrough = true; // set to false if it is not the first time calling a function, used to set or change variables once and not every time a function is called
+boolean firstTimeThroughTurning = true; // set to false if it is not the first time through the turning function
+long tempTimer = 0; // a temporary timer used throughout 
+boolean homeIsReached = false; // set to true when the robot gets home
+boolean fireStillExists = false; // set to true when the fire still exists
 
 // Interrupt Variables
-volatile long countTime = 0;
-volatile long rightCounter = 0;
-volatile long leftCounter = 0;
-
-//added by Kevin ----------------------------------------Karen----------------------------you may want to put these elsewhere. I didnt want to screw up the organization
-boolean usePID = false; //if 1, the fan arm uses PID to drive. If 0, uses limit switches.
-
-
-int armStateSwitches = drivingUp;
-int armRaiseSpeed = 110;
-int armHoldSpeed = 100;
-int armLowerSpeed = 92;
-int armMotorAdjust = 0;
-long initUpTime = 0;
-long initDownTime = 0;
-long armUpTime = 4000;
-boolean fireStillExists = false;
-int backFromFlame = -250;
-int flameAngle = 0;
+volatile long countTime = 0; // the total time the program has been runing in .1s
+volatile long rightCounter = 0; // the count of encoder ticks from the right motor
+volatile long leftCounter = 0; // the count of encoder ticks from the left motor
+volatile float accelTime;  //used as a multiplier to slow the robot's acceleration as it starts to drive
 
 /*********************************************************************************************/
 void setup(){
+  
+  // serial monitor setup
+  Serial.begin(9600);
+  Serial.println("beginSetup");
 
   // setup limit switch pins
   pinMode(upperSwitchPin, INPUT_PULLUP);
@@ -282,11 +264,6 @@ void setup(){
   // setup Fan 
   pinMode(fanPin, OUTPUT);
   digitalWrite(fanPin,LOW);
-
-  Serial.begin(9600);
-  Serial.println("beginSetup");
-
-  // need some way to determine which direction the robot is initially facing 
 
   // setup drive motors
   pinMode(leftMotorF, OUTPUT);
@@ -304,13 +281,8 @@ void setup(){
   armMotor.attach(armMotorPin);
   pinMode(armPotPin, INPUT);
 
-
   // setup Flame Servo
   flameServo.attach(fireServoPin, 544, 2400);
-
-  // sets up timer used for arm Function
-  Timer1.initialize(100000); // interrupt every .1s or 10 times every second
-  Timer1.attachInterrupt(timerISR);
 
   //Sonar pin declarations
   pinMode(frontPingPin,OUTPUT);
@@ -351,19 +323,24 @@ void setup(){
   calcGyroOffset();
 
   Serial.println("gyroFinish");
+  
+  // sets up timer used throughout functions
+  Timer1.initialize(100000); // interrupt every .1s or 10 times every second
+  Timer1.attachInterrupt(timerISR);
 
   //Encoder interrupt initialization
   attachInterrupt(0,leftTick,RISING);
   attachInterrupt(1,rightTick,RISING);
 
   //Sonar interrupt initialization
-  attachInterrupt(5,frontSonarISR,CHANGE); 
-  //  attachInterrupt(4,sideSonarISR,CHANGE);  
+  attachInterrupt(5,frontSonarISR,CHANGE);   
 
   // set up interrups for drive Motors
   attachInterrupt(0,leftTick,RISING);
-  attachInterrupt(1,rightTick,RISING);  
-
+  attachInterrupt(1,rightTick,RISING); 
+ 
+ 
+// waits for button press to begin driving
   while(digitalRead(startButtonPin) == HIGH){
     //waiting for button
   }
@@ -372,29 +349,6 @@ void setup(){
 /*********************************************************************************************/
 
 void loop() {
-
-  Serial.println();
-  //  lcd.setCursor(0,0);
-  //  lcd.print(mainState);
-
-  //Serial.println("beginLoop");
-
-  //Serial.println(millis());
-  //  Serial.print(pingNext);
-  //  Serial.print("  ");
-  //  pingNext = frontSonar;
-    Serial.print(getDis(frontSonar));
-    Serial.print("  ");
-    Serial.print(getDis(sideSonar));
-    Serial.print("  ");
-    Serial.print(getDis(backSonar));
-    Serial.print("  ");
-    Serial.print(rtnState);
-    Serial.print("  ");
-    Serial.print(xCoord);
-    Serial.print("  ");
-    Serial.print(yCoord);
-    Serial.print("  ");
 
   ping(pingNext); // continually pings the sonars being used to update their values
 
@@ -423,41 +377,45 @@ void loop() {
 /*********************************************************************************************/
 // FindFire Switch State
 
+// the robot here is navigating the maze looking for the fire
+
 void findFire(void) {
 
-  printPosition();
+  printPosition();  // prints the position of the robot to the LCD screen
 
   // rotates the fire sensor looking for a fire
   lookForFire();
-  // checks the cliff detector for a cliff
+  
+  // checks the cliff detector for a cliff if a cliff has not already been seen
   if (mazeState != seeingCliff){
     checkForCliff();
   }
 
-  //  Serial.print(mazeState);
-  //  Serial.print("  ");
-
   switch (mazeState) {
-  case followingWall:  
-    // Serial.println("followWall");
+  case followingWall:  // following a wall using Sonar and Velocities of the motors to drive straight
     followWall();
 
+    // if a wall is seen with the front sonar change to that state
     if(checkFrontDis(frontWallDist)){
       // Serial.println("seeingWallFront");
       mazeState = seeingWallFront;
     }
 
+    // If the side wall has been lost change to that state
     if(checkSideDisGreater(closeWallDist)){ 
-      // Serial.println("loosingWall");
-      mazeState = loosingWall;
+      // Serial.println("losingWall");
+      mazeState = losingWall;
       tempTimer = countTime;
     }
 
     break;
+    
   case seeingWallFront:
-    //  Serial.println("turningBCFront");
+    
+    // this state machine stops the robot and turn it 90 degrees
     seeWallFront();
 
+    // once the turn is complete go back to following the wall
     if(turnComplete){
       turnComplete = false;
       mazeState = followingWall;
@@ -465,21 +423,23 @@ void findFire(void) {
     }
 
     break;
-  case loosingWall:
-    //   Serial.println("lostWall");
+    
+  case losingWall:
+    // this state machine navigates the robot about a peninsula 
     lostWall();
 
+    // if it is not in the first two states check the sonar, otherwise ignore the sonar readings as they may pick up the edge of the wall and get bad data
     if((lostWallState != lostWallStopping) && (lostWallState != lostWallKeepDrivingStraight)){
 
-      //once sonar can see a wall again
+      //once sonar can see a wall again to the side follow it
       if(checkSideDisLess(closeWallDist)){
 
         mazeState = followingWall;
         Kw = wallProportionalVal; 
         lostWallState = 0;
       }
+      // if the sonar in the front can see a wall go to the state where a front wall is seen
       if(checkFrontDis(frontWallDist)){
-
         mazeState = seeingWallFront;
         Kw = wallProportionalVal; 
         lostWallState = 0;
@@ -487,15 +447,19 @@ void findFire(void) {
     }
 
     break;
+    
   case seeingCliff: 
+    // this state is entered from an interrupt if a cliff is seen
     seenCliff();
 
+    // once the robot is back driving straight check the sonar again
     if (cliffState == SeenCliffBackOnCourse){
-      //once sonar can see a wall again 
+      //once sonar can see a wall again to the side follow it
       if(checkSideDisLess(closeWallDist)){
         mazeState = followingWall;
         cliffState = 0;
       }
+      // if the sonar on the front can see a wall, turn about it
       if(checkFrontDis(frontWallDist)){
         mazeState = seeingWallFront;
         Kw = wallProportionalVal; 
@@ -536,17 +500,12 @@ void extinguishFire(void){
       if(checkFrontDis(candleDist)){
         stopAllDrive();
         extState = activatingFan;
-        armState = armUp;
       }
     }
     break;
   case activatingFan:
-    if(usePID){
-      activateFanPID();
-    }
-    else{
+   
       activateFanSwitches();  
-    }
 
     if(fanSweepComplete){ 
       extState = checkingFlame;
