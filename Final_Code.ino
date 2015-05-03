@@ -479,14 +479,18 @@ void findFire(void) {
 //Extinguish Fire Switch Statement
 
 void extinguishFire(void){
-  printPosition();
-  digitalWrite(ledArrayPin,LOW);
+  
+  printPosition(); // prints the position of the robot
+  digitalWrite(ledArrayPin,LOW); // changes the LED flashing sequence
   switch (extState) {
   case initialScanning:
+    // scans the servo range looking for the highest fire value
     scan();
     stopAllDrive();
+    // once the scan is complete drive towards the candle
     if(scanComplete) {
       extState = drivingToCandle;
+      // updates the flame angle to include
       flameAngle += firePosition;
       scanComplete = false; 
     }
