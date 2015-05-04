@@ -37,7 +37,7 @@ void timerISR(){
 }
 
 /*********************************************************************************************/
-// Front Sonar ISTR
+// Front Sonar ISR
 // when the ping gets back to the front sensor this is called 
 
 
