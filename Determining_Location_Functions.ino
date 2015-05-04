@@ -1,7 +1,7 @@
 /*********************************************************************************************/
 // Turn State machine  
-
-// sets a global variable to determine whether to increment x or y or decrement x or y 
+// based on the current direction the robot is driving and how it turned 
+// sets a global variable to determine the new driving Direction 
 
 void turnStateMachine(int turnDeg){
   switch (drivingDirection) {
@@ -62,8 +62,8 @@ int changeInDis(void) {
 
 /*********************************************************************************************/
 // update Location Function
-
-//this function uses main global variable to determine which x and y coordinates to update and uses encoder values to update the new location of the robot
+// this function uses main global variable to determine which x and y coordinates to update 
+// uses encoder values to update the new location of the robot and clears the encoder values
 
 void updateLocation(void) {
 
@@ -88,10 +88,11 @@ void updateLocation(void) {
 }
 
 /*********************************************************************************************/
+// Print Position Function 
+// prints the x and y coord variables to the LCD screen 
+
 void printPosition(void) {
-  
-//  lcd.setCursor(0,0);
-//  lcd.print(drivingDirection);
+
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("(");
@@ -104,17 +105,71 @@ void printPosition(void) {
   lcd.setCursor(10, 0);
   lcd.print(")");
   
-//    lcd.setCursor(0, 0);
-//  lcd.print("(");
-//  lcd.setCursor(1, 0);
-//  lcd.print((int)leftCounter);
-//  lcd.setCursor(4, 0);
-//  lcd.print(", ");
-//  lcd.setCursor(7, 0);
-//  lcd.print((int)rightCounter);
-//  lcd.setCursor(10, 0);
-//  lcd.print(")");
-  
 }
 
+/*********************************************************************************************/
+// Updating Angle Drive Location 
+// this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
 
+void updateAngleDriveLocation(void){
+  averageDist();
+  xCoord = xCoord + candleChangeDisX();
+  yCoord = yCoord + candleChangeDisY();
+  
+
+  leftCounter = 0;
+  rightCounter = 0;
+  lastLeftTicks = 0; 
+  lastRightTicks = 0;
+
+}
+
+/*********************************************************************************************/
+// Average Distance Function 
+// calculates the average distance driven by the two encoders 
+void averageDist(void){
+  float leftDist = 0;
+  float rightDist = 0;
+
+  leftDist = inchesPerTick * leftCounter;
+  rightDist = inchesPerTick * rightCounter;
+  
+  averageDistance = ((leftDist + rightDist) / 2);
+}
+
+/*********************************************************************************************/
+// Candle Change Dis X 
+// returns the change in X based on the angle turned and encoder ticks
+float candleChangeDisX(void){
+  
+  float cosAngle;
+  cosAngle = cos(convertToRad(flameAngle));
+  return (float)(averageDistance) * cosAngle;
+  
+}
+/*********************************************************************************************/
+// Candle Change Dis Y 
+// returns the change in Y based on the angle turned and encoder ticks
+float candleChangeDisY(void){
+
+
+  float sinAngle;
+  sinAngle = sin(convertToRad(flameAngle));
+  return (float)(averageDistance) * sinAngle; 
+  
+  
+}
+/*********************************************************************************************/
+// Adjust Flame Position Function 
+// adds the extra distance from the center of the robot to the center of the candle
+void adjustFlamePos(void){
+  xCoord = xCoord + 12 * cos(convertToRad(flameAngle));
+  yCoord = yCoord + 12 * sin(convertToRad(flameAngle));  
+}
+/*********************************************************************************************/
+// Convert To Radians Function
+// converts an angle in degrees to radians
+
+float convertToRad(int angle){
+  return (float)(PI/180) * (float)angle;
+}

@@ -1,5 +1,6 @@
 /*********************************************************************************************/
 // madeItHome
+// the robot is home stop driving
 
 void allDone(void) {
   stopAllDrive();
@@ -19,7 +20,7 @@ void getCoordinates(void) {
 
 /*********************************************************************************************/
 // Return Homoe Init Direction Function 
-// sets the initial driving direction when robot is returning home and has found the wall again 
+// sets the initial driving direction when robot is returning home and has found the wall again after putting the candle out 
 void returnHomeInitDirection(void){
   
   if (drivingDirection == xPos){
@@ -38,8 +39,8 @@ void returnHomeInitDirection(void){
 }
 
 /*********************************************************************************************/
-// drive Home FUnction 
-// Drives a given distance using encoders and maybe a wall if we have it
+// drive Home Function 
+// Drives a given distance home using encoders
 
 void driveHome(void){
   int disToDrive; 

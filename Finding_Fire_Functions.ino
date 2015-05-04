@@ -12,7 +12,6 @@ void storeLocation(void) {
 /*********************************************************************************************/
 // Look For Fire function
 
-
 // This function is constantly polled when navigating the maze
 // it rotates the servo and if it ever sees a "flame" changes the main State 
 
@@ -23,33 +22,37 @@ void lookForFire(void) {
 
   if(countTime - lastFireTimeCount >= 1) {
 
-    //Serial.println("lookForFire");
-    /* Read current fire sensor value */
+    // Read current fire sensor value 
     flameVal = analogRead(firePin);
-    //Serial.println(flameVal);
-    //Serial.println(fireServoPos);
 
     flameServo.write(fireServoPos);
 
+    // if the servo is increasing
     if(servoIncreasing) {
+      // if the servo has not reached it's max value
       if(fireServoPos <= 110) {
         fireServoPos += 10; 
         flameServo.write(fireServoPos);     
       }
+      // if it has reached it's max value
       else {
         servoIncreasing = 0;
       }
     }
+    // if the servo is decreasing 
     else {
+      // if it has not reached it's lowest value
       if(fireServoPos >= 10) {
         fireServoPos -= 10;
         flameServo.write(fireServoPos);
       }
+      // if it has reached it's lowest value
       else {
         servoIncreasing = 1;
       }
     }
    
+   // if the robot is not turning 
     if(robotIsTurning == false){
       /* If the flame is found */
       if(flameVal < 800) {
@@ -79,12 +82,12 @@ void lookForFire(void) {
 void seeWallFront(void) {
 
   switch (seeWallState){
-  case seeWallStoppingDrive:
+  case seeWallStoppingDrive: // stop driving 
     stopAllDrive();
     updateLocation();
     seeWallState = seeWallTurningState;
     break;
-  case seeWallTurningState:
+  case seeWallTurningState: // turn negative ninety degrees
     turn(negNinetyDeg);
     break;
   default:
@@ -103,14 +106,14 @@ void seeWallFront(void) {
 void lostWall(void) {
 
   switch (lostWallState) {
-  case lostWallStopping:
+  case lostWallStopping: // stop driving for a second
     stopAllDrive(); 
     if ((countTime - tempTimer) >= 10){
       lostWallState = lostWallKeepDrivingStraight;
       accelTime = 0;
     }
     break;
-  case lostWallKeepDrivingStraight: 
+  case lostWallKeepDrivingStraight: // drive straight a little to get away from the wall 
     driveStraightDesDis(forwardDisToTurnAboutWall);
     if(disTravComplete) {
       firstTimeThrough = true;
@@ -118,7 +121,7 @@ void lostWall(void) {
       disTravComplete = false;
     }
     break;
-  case lostWallTurning: 
+  case lostWallTurning: // turn about the wall
     updateLocation();
     turn(ninetyDeg);
     if(turnComplete){
@@ -128,7 +131,7 @@ void lostWall(void) {
     }
     break; 
 
-  case lostWallKeepDrivingStraight2: 
+  case lostWallKeepDrivingStraight2:  // drive straight to get around the penensula 
     driveStraightDesDis(forwardDisToTurnAboutWall2);
     if(disTravComplete) {
       firstTimeThrough = true;
@@ -137,7 +140,7 @@ void lostWall(void) {
     }
     break;
 
-  case lostWallTurning2: 
+  case lostWallTurning2: // turn again to find the wall again 
     updateLocation();
     turn(ninetyDeg);
     if(turnComplete){
@@ -147,7 +150,7 @@ void lostWall(void) {
     }
     break; 
 
-  case lostWallDrivingStraight: 
+  case lostWallDrivingStraight: // drive straight looking for a wall to follow in the finding Fire state machine 
     driveStraightForwardEnc();
     break;
 
@@ -168,11 +171,11 @@ void lostWall(void) {
 void seenCliff(void) {   
 
   switch(cliffState){
-  case seenCliffStoppingDrive: 
+  case seenCliffStoppingDrive: // stop driving
     stopAllDrive();
     cliffState = seenCliffBackingUp; 
     break;
-  case seenCliffBackingUp:
+  case seenCliffBackingUp:  // back up from the cliff
     driveStraightDesDis(negBackFromCliffDist);
     if(disTravComplete) {
       if(mainState != returningHome){
@@ -190,7 +193,7 @@ void seenCliff(void) {
       }
     }
     break;
-  case SeenCliffTurningToStraight:
+  case SeenCliffTurningToStraight: // turn back to drive straight 
     updateLocation();
     turn(negNinetyDeg);
     if(turnComplete){
@@ -198,7 +201,7 @@ void seenCliff(void) {
       turnComplete = false;
     }
     break;
-  case SeenCliffBackOnCourse:
+  case SeenCliffBackOnCourse:  // back on course keep driving with the encoders 
     driveStraightForwardEnc();
     break;
   default:
@@ -211,7 +214,7 @@ void seenCliff(void) {
 
 /*********************************************************************************************/
 // checkForCliff
-// changes the state
+// changes the proper state if a cliff is seen and stops driving
 void checkForCliff(void){
   if(mainState == findingFire){
 

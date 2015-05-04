@@ -1,5 +1,6 @@
 /*********************************************************************************************/
 // Left Motor Encoder ISR
+// every time the left encoder is high increment the leftCounter 
 
 void leftTick(){
   if (digitalRead(leftEncoderB) == HIGH){
@@ -12,6 +13,7 @@ void leftTick(){
 
 /*********************************************************************************************/
 // Right Motor Encoder ISR
+// every time the right encoder is high increment the leftCounter 
 
 void rightTick(){
   if (digitalRead(rightEncoderB) == HIGH){
@@ -24,6 +26,8 @@ void rightTick(){
 
 /*********************************************************************************************/
 // Timer ISR
+// Increments the overall CountTime variable every tenth of a second
+// also if accelTime is less than 1 increments it to accelerate the robot to it's top driving speed
 
 void timerISR(){
   countTime++;
@@ -32,7 +36,11 @@ void timerISR(){
   }
 }
 
-//========================================================
+/*********************************************************************************************/
+// Front Sonar ISTR
+// when the ping gets back to the front sensor this is called 
+
+
 void frontSonarISR(){
   if(digitalRead(frontEchoPin) == HIGH){
     frontPingTime = micros();

@@ -8,8 +8,7 @@ void scan(void) {
 
   int currFlameVal;
 
-  //  if(countTime - lastFireTimeCount > 1) {
-
+  // if the scan is complete
   if(fireServoPos > 180) {
 
     fireServoPos = 0; // reset the position
@@ -31,16 +30,13 @@ void scan(void) {
     flameAngle += candleTurn;
   }
 
+  // if the scan is not complete
   else {
 
     flameServo.write(fireServoPos);
     currFlameVal = analogRead(firePin);
 
-    //Serial.print("Position ");
-    //Serial.print(fireServoPos);
-    //Serial.print("Flame Value ");
-    //Serial.println(currFlameVal);
-
+    // if the current flame value is less than the previous lowest flame value set it to the new flame value
     if(currFlameVal < lastFlameVal) {
 
       lastFlameVal = currFlameVal;
@@ -54,8 +50,6 @@ void scan(void) {
 
   lastFireTimeCount = countTime; // reset the stored time variable
 
-    //  }
-
 }
 
 /*********************************************************************************************/
@@ -63,13 +57,8 @@ void scan(void) {
 // turns robot to the angle specified based on the variable changed in the scan function
 
 void turnTowardFlame(void){
-//  if (firePosition > 90){
-//    candleTurn = (firePosition - 90);
-//    turn(candleTurn);
-//
-//  }
-//  else if (firePosition < 90){
-//    candleTurn = -(90 -firePosition);
+
+  // if we need to turn
   if(firePosition != 90){
     turn(candleTurn);
   }
@@ -84,7 +73,7 @@ void turnTowardFlame(void){
 
 void driveToCandle(void) {
   switch (driveToCandleState) {
-  case scanning:
+  case scanning:  // scan for the fire
     scan();
 
     if(scanComplete) {
@@ -94,7 +83,7 @@ void driveToCandle(void) {
     break;
 
   case turningToCandle: 
-    turnTowardFlame();
+    turnTowardFlame();   // turn towards where the fire was most intense 
 
     if(turnComplete){
       turnComplete = false;
@@ -105,7 +94,7 @@ void driveToCandle(void) {
     break;
 
 
-  case drivingForTime:
+  case drivingForTime:    // drive for two seconds towards the flame
     driveStraightForwardEnc();
     if((countTime - initTimeCandleDrive) >= 20){
       stopAllDrive();
@@ -115,7 +104,7 @@ void driveToCandle(void) {
 
     break;
 
-  case updatingLocation:
+  case updatingLocation:  // update the location of the robot
     updateAngleDriveLocation();
     driveToCandleState = scanning;
     break;
@@ -130,15 +119,12 @@ void driveToCandle(void) {
 
 
 /*********************************************************************************************/
+// Activate Fan Switches Function 
 //drives the fan up until it reaches the limit switch, waits a set amount of time, then sends the fan down.
+
 void activateFanSwitches(void){
-  //Serial.print(armStateSwitches);
- // Serial.print("  ");
- // Serial.print((int)digitalRead(lowerSwitchPin));
- // Serial.print("  ");
-  //Serial.print((int)digitalRead(upperSwitchPin));
   
-  digitalWrite(fanPin, HIGH);
+  digitalWrite(fanPin, HIGH);  // turn the fan on
   switch(armStateSwitches){
   case drivingUp:
     armMotor.write(armRaiseSpeed); //raise the fan
@@ -148,17 +134,23 @@ void activateFanSwitches(void){
       armStateSwitches = waitingAtTop;
     }
     break;
+    
   case waitingAtTop:
+    // if the arm is not still contacting the limit switch
     if(digitalRead(upperSwitchPin) != LOW){
       armMotorAdjust++;  
     }
     armMotor.write(armHoldSpeed + armMotorAdjust);
+    
+    // if enough time has passed 
     if((millis() - initUpTime) > armUpTime){
       armStateSwitches = drivingDown;
     }
     break;
+    
   case drivingDown:
     armMotor.write(armLowerSpeed);
+    // if the lower switch is hit 
     if(digitalRead(lowerSwitchPin) == LOW){
       if(initDownTime == 0) {    
         initDownTime = millis();
@@ -173,6 +165,7 @@ void activateFanSwitches(void){
       }
     }
     break;
+    
   default: 
     Serial.println("Bran wants defaults");
     lcd.print("Error 13");
@@ -182,7 +175,6 @@ void activateFanSwitches(void){
 }
 /*********************************************************************************************/
 // Report Flame Function 
-
 // reports the location of the flame 
 
 void reportFlame(void) {
@@ -201,78 +193,8 @@ void reportFlame(void) {
 }
 
 
-/*********************************************************************************************/
-// Updating Angle Drive Location 
-// this updates the x and y corrdinates based on the angle the robot was driving at towards the candle
-
-void updateAngleDriveLocation(void){
-  averageDist();
-  xCoord = xCoord + candleChangeDisX();
-  yCoord = yCoord + candleChangeDisY();
-  
-//  Serial.print(candleChangeDisX());
-//  Serial.print("  ");
-//  Serial.print(candleChangeDisY());
-//  Serial.print("  ");
-//  Serial.print(drivingDirection);
-//  Serial.print("  ");
-
-  leftCounter = 0;
-  rightCounter = 0;
-  lastLeftTicks = 0; 
-  lastRightTicks = 0;
-
-}
-
-/*********************************************************************************************/
-
-void averageDist(void){
-  float leftDist = 0;
-  float rightDist = 0;
-
-  leftDist = inchesPerTick * leftCounter;
-  rightDist = inchesPerTick * rightCounter;
-  
-  averageDistance = ((leftDist + rightDist) / 2);
-}
-
-/*********************************************************************************************/
-
-float candleChangeDisX(void){
-  
-  float cosAngle;
-  cosAngle = cos(convertToRad(flameAngle));
-//  Serial.print(cosAngle);
-//  Serial.print("  ");
-//  Serial.print(averageDistance);
-//  Serial.print("  ");
-  return (float)(averageDistance) * cosAngle;
-  
-}
-/*********************************************************************************************/
-
-float candleChangeDisY(void){
 
 
-  float sinAngle;
-  sinAngle = sin(convertToRad(flameAngle));
-//  Serial.print(sinAngle);
-//  Serial.print("  ");
-//  Serial.print(averageDistance);
-//  Serial.print("  ");
-  return (float)(averageDistance) * sinAngle; 
-  
-  
-}
-/*********************************************************************************************/
-void adjustFlamePos(void){
-  xCoord = xCoord + 12 * cos(convertToRad(flameAngle));
-  yCoord = yCoord + 12 * sin(convertToRad(flameAngle));  
-}
-/*********************************************************************************************/
-float convertToRad(int angle){
-  return (float)(PI/180) * (float)angle;
-}
 
 
 

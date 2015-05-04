@@ -213,6 +213,7 @@ int locationsArray[30][2] = {0}; //an array of all the places the robot has made
 int currentArrayRow = 0; // the current array row being accessed
 long temporaryLeftCounter; //a temporary encoder count value used to determine how far the robot drives
 long temporaryRightCounter; //a temporary encoder count value used to determine how far the robot drives
+long averageDistance = 0; 
 
 // State variables
 volatile int mainState = 0; 
@@ -239,6 +240,7 @@ boolean firstTimeThroughTurning = true; // set to false if it is not the first t
 long tempTimer = 0; // a temporary timer used throughout 
 boolean homeIsReached = false; // set to true when the robot gets home
 boolean fireStillExists = false; // set to true when the fire still exists
+boolean robotIsTurning = false; // set to true when the robot is turning
 
 // Interrupt Variables
 volatile long countTime = 0; // the total time the program has been runing in .1s
@@ -505,14 +507,13 @@ void extinguishFire(void){
       if(checkFrontDis(candleDist)){
         stopAllDrive();
         extState = activatingFan;
-        armState = armUp;
       }
     }
     break;
     
   case activatingFan:
       // activates the fan and runs it from top to bottom
-      activateFanPID();
+      activateFanSwitches();
 
     if(fanSweepComplete){ 
       extState = checkingFlame;

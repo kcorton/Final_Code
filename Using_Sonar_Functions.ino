@@ -1,6 +1,5 @@
 /*********************************************************************************************/
 // Check Front Distance function 
-
 // if the front distance sensors sees something  a certain distance away the function is true
 
 boolean checkFrontDis(int desDis){
@@ -17,7 +16,6 @@ boolean checkFrontDis(int desDis){
 
 /*********************************************************************************************/
 // Check Side Distance function 
-
 // if the side distance sensors sees something less than a certain distance away the function is true
 
 boolean checkSideDisLess(int desDis){
@@ -44,7 +42,6 @@ boolean checkSideDisLess(int desDis){
 
 /*********************************************************************************************/
 // Check Side Distance function 
-
 // if the side distance sensors sees something less than a certain distance away the function is true
 
 boolean checkSideDisGreater(int desDis){
@@ -74,7 +71,6 @@ boolean checkSideDisGreater(int desDis){
 
 /*********************************************************************************************/
 // Get Front Distance Function  
-
 // returns the value from whichever Sonar is given
 
 float getDis(int sonarToRead){
@@ -103,22 +99,11 @@ float getDis(int sonarToRead){
 }
 
 /*********************************************************************************************/
-// Pings all the SOnar 
+// Pings all the Sonar 
 
 void ping(int sensorToPing){
-//  Serial.print("outside");
-//  Serial.print("  ");
-//  if((millis() - pingTime) > 30000){
-//    Serial.print("reset");
-//    Serial.print("  ");
-//    waiting = false;  
-//  }
+
   if(!waiting){
-//    Serial.print("ping");
-//    Serial.print("  ");
-//    Serial.print(sensorToPing);
-//    Serial.print("  ");
-    // Serial.println("ping");
     int pingPin;
     switch(sensorToPing){
     case frontSonar:
@@ -142,8 +127,6 @@ void ping(int sensorToPing){
       delay(5000);
       break;
     }
-//    Serial.print(pingPin);
-//    Serial.print("  ");
 
     delay(50);  //ensures a second ping is not sent out before 
     //the first returns
@@ -151,7 +134,6 @@ void ping(int sensorToPing){
     digitalWrite(pingPin,HIGH);
     delayMicroseconds(250);
     digitalWrite(pingPin,LOW); 
-//    pingTime = millis();
     
     if(sensorToPing == sideSonar){
       sideEchoTime = pulseIn(sideEchoPin,HIGH);

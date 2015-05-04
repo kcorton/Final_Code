@@ -13,10 +13,10 @@ void turn(int turnDeg){
     lastTurnTime = millis();
     firstTimeThroughTurning = false;
   }
+  
   /* If enough time has passed */
   if(countTime - lastTurnCount >= 1) {
     currTurnTime = millis() - lastTurnTime;
-
     gyro.read();
     currGyroReading = (int)gyro.g.z;
     mdps = (currGyroReading - offset);
@@ -24,6 +24,7 @@ void turn(int turnDeg){
 
     totalDegrees += (float)mdps * ((float)currTurnTime/2000) * 2.1;
 
+    // if we are turning a positive direction
     if(turnDeg >= 0) {
       /* Write Changes to the motors */
       leftSpeed = -turningSpeed;
@@ -34,16 +35,15 @@ void turn(int turnDeg){
       // if the turn has been completed
       if(totalDegrees >= turnDeg) {
         turnComplete = true;
-        accelTime = 0;
+        accelTime = 0;  // reset acceleration to 0
         stopAllDrive();
         lastTurnCount = 0;
         totalDegrees = 0;
         firstTimeThroughTurning = true;
-        //        lastTurnTime = millis();                      ///////Call this before turn we think
 
         if (mainState == findingFire){
-          storeLocation();
-          turnStateMachine(turnDeg); 
+          storeLocation();  // store the current location
+          turnStateMachine(turnDeg); // determine the new driving direction
           robotIsTurning = false;
         }
         else if (mainState == extinguishingFire) {
@@ -51,12 +51,13 @@ void turn(int turnDeg){
         }
         else //if (mainState == returningHome) 
        { 
-          turnStateMachine(turnDeg);
+          turnStateMachine(turnDeg);  // determine the new driving Direction
           robotIsTurning = false;
         }
       }
     }
-
+    
+    // if turning negative direction 
     else if(turnDeg < 0) {
 
       /* Write Changes to the motors */
@@ -64,32 +65,31 @@ void turn(int turnDeg){
       rightSpeed = -turningSpeed;
       updateMotors();
 
+      // once turn is complete
       if(totalDegrees <= turnDeg) {
         turnComplete = true;
-        accelTime = 0;
+        accelTime = 0;  // reset acceleration to 0
         stopAllDrive();
         lastTurnTime = 0;
         totalDegrees = 0;
         firstTimeThroughTurning = true;
-        //        lastTurnTime = millis();
 
         if (mainState == findingFire){
-          storeLocation();
-          turnStateMachine(turnDeg); 
+          storeLocation();   // store the current location
+          turnStateMachine(turnDeg); // determine the new driving Direction
           robotIsTurning = false; 
         }
         else if (mainState == extinguishingFire) {
           robotIsTurning = false;
-          // do nothing for now
+          // do nothing 
         }
         else if (mainState == returningHome) { 
-          turnStateMachine(turnDeg);
+          turnStateMachine(turnDeg);  // determine the new driving Direction
           robotIsTurning = false;
         }
       }
     }
 
-    //Serial.println(totalDegrees);
 
     lastTurnTime = millis();
     lastTurnCount = countTime;
@@ -108,6 +108,7 @@ boolean disTraveledComplete(int desDis) {
     temporaryRightCounter = rightCounter;
     firstTimeThrough = false;
   }
+  // if driving forwards
   if (desDis > 0){
     if ( (leftCounter - temporaryLeftCounter) >= desDis){
       if ((rightCounter - temporaryRightCounter) >= desDis){
@@ -118,6 +119,7 @@ boolean disTraveledComplete(int desDis) {
       return false;
     }
   }
+  // if driving backwards 
   else if (desDis < 0){
     if ( (leftCounter - temporaryLeftCounter) <= desDis){
       if ((rightCounter - temporaryRightCounter) <= desDis){
@@ -133,12 +135,12 @@ boolean disTraveledComplete(int desDis) {
 
 /*********************************************************************************************/
 // Drive Straight Desired Distance function
-
 //drives straight by ensuring both encoders have moved the same distance until it reaches it's desired distance
-// once this distance is reached it changes the gloabal variable disTravComplete to 1
+// once this distance is reached it changes the gloabal variable disTravComplete to true
 
 void driveStraightDesDis(int desDis) {
 
+  // if driving forwards 
   if(desDis > 0){
 
     driveStraightForwardEnc();
@@ -148,6 +150,7 @@ void driveStraightDesDis(int desDis) {
       disTravComplete = true;
     } 
   }
+  // else if driving backwards 
   else if(desDis < 0){
     driveStraightBackwardsEnc();
 
@@ -161,7 +164,6 @@ void driveStraightDesDis(int desDis) {
 
 /*********************************************************************************************/
 // stop All Drive Function
-
 // stops the drive motors from moving 
 
 void stopAllDrive(void) {
@@ -174,18 +176,16 @@ void stopAllDrive(void) {
 
 /*********************************************************************************************/
 // Drive Straight Forward Encoders function
-
 //drives straight by ensuring both encoders have moved the same distance
 
 void driveStraightForwardEnc(void) {
-  Kw = 0;
+  Kw = 0; // sets the proportiona lconstant for the sonar values to 0
   followWall();
 
 }
 
 /*********************************************************************************************/
-// Drive Straight Forward Encoders function
-
+// Drive Straight Backwards Encoders function
 //drives straight by ensuring both encoders have moved the same distance
 
 void driveStraightBackwardsEnc(void) {
@@ -202,6 +202,7 @@ void driveStraightBackwardsEnc(void) {
 
 void followWall(void) {
   
+  // if we aren't returning home 
   if(mainState != returningHome){
 
   calcVelocity();
@@ -217,6 +218,7 @@ void followWall(void) {
   updateMotors();
   }
   
+  // if we are returning home use back sonar instead of side sonar 
   else {
   calcVelocity();
   //calculate sonar error
@@ -233,7 +235,8 @@ void followWall(void) {
 
 }
 
-//==========================================================================
+/*********************************************************************************************/
+// Calc Velocity Function 
 //calculates the average velocity of the robot in encoder ticks per second and
 // stores the values in a 2x5 array with circular indexing. The left velocity
 // is stored in row 0 and the right is stored in row 1.
@@ -272,7 +275,8 @@ void calcVelocity(){
     speedStorage[1][nextIndex] = rightVelocity; 
   }
 }
-//==========================================================================
+/*********************************************************************************************/
+//Get Left Velocity Function
 //calculates the average velocity of the left wheel in encoder ticks per second
 // using the data stored in speedStorage[0]
 float getLeftVeloc(){
@@ -284,7 +288,8 @@ float getLeftVeloc(){
   //calculate and return the average
   return sum/5;
 }
-//==========================================================================
+/*********************************************************************************************/
+//Get Right Velocity Function
 //calculates the average velocity of the right wheel in encoder ticks per second
 // using the data stored in speedStorage[1]
 float getRightVeloc(){
@@ -297,7 +302,8 @@ float getRightVeloc(){
   return sum/5;
 }
 
-//==========================================================================
+/*********************************************************************************************/
+// Update Motors 
 //determines whether the wheels should spin forwards or backwards based on
 // the sign, then maps the speeds, which are originally in encoder ticks
 // per second, to the corresponding analog write value
@@ -319,7 +325,9 @@ void updateMotors(){
     analogWrite(rightMotorB,(mapSpeed(rightSpeed)));
   }
 }
-//==========================================================================
+
+/*********************************************************************************************/
+// Map Speed Function 
 //returns an analogWrite value (0 to 255) corresponding to the input speed
 //Note: ignores the sign of inSpeed since negatives are already taken care of
 //      of in updateMotors()
