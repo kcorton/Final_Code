@@ -37,18 +37,27 @@ void timerISR(){
 }
 
 /*********************************************************************************************/
-// Front Sonar ISR
-// when the ping gets back to the front sensor this is called 
-
+// Front Sonar ISR 
+// Triggers when the line changes. Initially, the line is low. When the line goes high,
+//  the ping has been sent, so the initial time is set using micros()
+// When the line goes back to low, the echo has been recieved, so the travel time is
+//  calculated, again using micros()
 
 void frontSonarISR(){
   if(digitalRead(frontEchoPin) == HIGH){
+    //the ping has just been sent, so set the initial ping time
     frontPingTime = micros();
   }
   else{
+    //the echo has just been recieved, so calculate the travel time
     tempEchoFront = micros() - frontPingTime;
+    
+    //if the time calculated makes sense, save that time
+    // (gets rid of random max values and random negative values)
     if((tempEchoFront < 30000) && (tempEchoFront >=0)){
       frontEchoTime = tempEchoFront;
+      
+      //calculate which sonar to ping next
       switch(mainState){
       case findingFire:
         {
@@ -77,9 +86,12 @@ void frontSonarISR(){
         break;
       }
     }
+    
+    //an undesirable time was calculated, so re-ping the front sensor
     else{
       pingNext = frontSonar; 
     }
+    // tell the ping function the echo has been recieved
     waiting = false; 
   }
 

@@ -99,10 +99,12 @@ float getDis(int sonarToRead){
 }
 
 /*********************************************************************************************/
-// Pings all the Sonar 
+// Pings sends a ping from the sonar specified by the input parameter. If the next sonar to ping
+//  is the side or back sonar, then this function then calls pulseIn() which calculates how long
+//  it took for the echo to return.
 
 void ping(int sensorToPing){
-
+  // If waiting for an echo, dont send another ping
   if(!waiting){
     int pingPin;
     switch(sensorToPing){
@@ -128,15 +130,19 @@ void ping(int sensorToPing){
       break;
     }
 
-    delay(50);  //ensures a second ping is not sent out before 
-    //the first returns
+    delay(50);  //ensures a second ping is not sent out before the first reurns
+    
+    //send the ping
     digitalWrite(pingPin,LOW);
     digitalWrite(pingPin,HIGH);
     delayMicroseconds(250);
     digitalWrite(pingPin,LOW); 
     
+    // if side sensor is pinged, use pulseIn()
     if(sensorToPing == sideSonar){
       sideEchoTime = pulseIn(sideEchoPin,HIGH);
+      
+      //determines which sonar to ping next
       switch(mainState){
       case findingFire:
         {
@@ -160,8 +166,11 @@ void ping(int sensorToPing){
         }
       }
     }
+    // if side sensor is pinged, use pulseIn()
     else if(sensorToPing == backSonar){
       backEchoTime = pulseIn(backEchoPin,HIGH);
+      
+      //determines which sonar to ping next
       switch(mainState){
       case findingFire:
         {
@@ -185,6 +194,7 @@ void ping(int sensorToPing){
         }
       }
     }
+    //otherwise (front sonar was pinged), wait for the interrupt to recieve an echo
     else{
       waiting = true;
     } 
